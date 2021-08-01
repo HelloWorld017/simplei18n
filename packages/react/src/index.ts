@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { createContext, createElement, useContext } from 'react';
 import type { FunctionComponent, ReactNode } from 'react';
 
 export type I18nAtomInterpolation = { name: 'Interpolation', content: string };
@@ -7,11 +7,10 @@ export type I18nAtom = string | I18nAtomInterpolation | I18nAtomTag;
 export type I18nPluralization =
 	{ zero?: I18nAtom[], singular: I18nAtom[], plural: I18nAtom[] };
 
-export type I18nKeys = 'ko' | 'en';
 export type I18nValue = I18nAtom[] | I18nPluralization;
-export type I18nObject = { [key: string]: I18nAtom[] | I18nPluralization | I18nObject };
-export type I18n = { [Key in I18nKeys]?: I18nObject };
-export type NamespacedI18n = { [key: string]: I18n | NamespacedI18n };
+export type I18nObject = { [key: string]: I18n };
+export type I18n = { [key: string]: I18nAtom[] | I18nPluralization | I18n };
+export type NamespacedI18n = { [key: string]: I18nObject | NamespacedI18n };
 
 export type TranslateOptions =
 	{ $count?: number } &
@@ -31,11 +30,12 @@ const access = (object: Record<string, unknown>, key: string): unknown => {
 	}, object);
 };
 
-const accessWithNamespace = (i18nOrNamespacedI18n: I18n | NamespacedI18n, key: string): I18nValue => {
-	const namespace = key.split(':')[0];
-	const i18n = namespace ? access(i18nOrNamespacedI18n, namespace) as I18n : i18nOrNamespacedI18n;
-	return access(i18n, key) as I18nValue;
-};
+const accessWithNamespace =
+	(i18nOrNamespacedI18n: I18nObject | NamespacedI18n, lang: string, key: string): I18nValue => {
+		const namespace = key.split(':')[0];
+		const i18n = namespace ? access(i18nOrNamespacedI18n, namespace) as I18nObject : i18nOrNamespacedI18n;
+		return access(i18n[lang], key) as I18nValue;
+	};
 
 const isI18nPluralization = (value: I18nValue): value is I18nPluralization =>
 	!Array.isArray(value);
@@ -44,7 +44,10 @@ export type UseI18n = {
 	t: TranslateFunction
 };
 
-export const useI18n = (i18n: I18n | NamespacedI18n): UseI18n => {
+export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n => {
+	const context = useContext(I18nContext);
+	const i18n = componentI18n ?? context.i18n ?? {};
+
 	const translate = (atoms: I18nAtom[], options: TranslateOptions): ReactNode =>
 		atoms.map<ReactNode>(atom => {
 			if (typeof atom === 'string') {
@@ -71,7 +74,7 @@ export const useI18n = (i18n: I18n | NamespacedI18n): UseI18n => {
 		}, []);
 
 	const t = (key: string, options: TranslateOptions = {}): ReactNode => {
-		const value = accessWithNamespace(i18n, key);
+		const value = accessWithNamespace(i18n, context.lang, key);
 		if (isI18nPluralization(value)) {
 			if (options.$count === 0)
 				return translate(value.zero ?? value.plural, options);
@@ -87,3 +90,6 @@ export const useI18n = (i18n: I18n | NamespacedI18n): UseI18n => {
 
 	return { t };
 };
+
+export type I18nContextType = { i18n?: I18nObject | NamespacedI18n, lang: string };
+export const I18nContext = createContext<I18nContextType>({ lang: 'en' });
