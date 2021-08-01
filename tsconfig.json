@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"lib": ["esnext"],
+		"module": "esnext",
+		"moduleResolution": "node",
+		"strict": true,
+		"typeRoots": ["./node_modules/@types"],
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"declaration": true
+	},
+	"exclude": [
+		"packages/*/types/**",
+		"packages/*/lib/**",
+		"packages/*/esm/**"
+	]
+}
