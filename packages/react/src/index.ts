@@ -49,7 +49,7 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 	const i18n = componentI18n ?? context.i18n ?? {};
 
 	const translate = (atoms: I18nAtom[], options: TranslateOptions): ReactNode =>
-		atoms.map<ReactNode>(atom => {
+		atoms.map<ReactNode>((atom, index) => {
 			if (typeof atom === 'string') {
 				return atom;
 			}
@@ -66,7 +66,7 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 
 				return createElement(
 					component,
-					{ children: translate(atom.content, options) }
+					{ children: translate(atom.content, options), key: `${atom.tagName}-${index}` }
 				);
 			}
 
