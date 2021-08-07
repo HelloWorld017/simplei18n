@@ -1,6 +1,6 @@
 {
   "name": "@simplei18n/vite-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Yet another simple, minimal i18n library",
   "main": "lib/index.js",
   "module": "esm/index.js",
