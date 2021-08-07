@@ -1,17 +1,17 @@
 import yaml from 'js-yaml';
 
-import { anyChar, digit, letter, string } from 'parjs';
+import { anyChar, digit, letter, result, string } from 'parjs';
 import { between, later, many, manyBetween, manyTill, map, or, qthen, thenPick } from 'parjs/combinators';
 import type { Parjser } from 'parjs';
 
 const stringifyConsecutive = <T>() =>
 	map<T[], (T | string)[]>(result =>
 		result.reduce<(T | string)[]>((prev, curr) => {
-			const lastItem = (prev.length > 1)
+			const lastItem = (prev.length >= 1)
 				? prev[prev.length - 1]
 				: undefined;
 
-			if (typeof lastItem === 'string') {
+			if (typeof lastItem === 'string' && typeof curr === 'string') {
 				return [ ...prev.slice(0, -1), lastItem + curr ];
 			}
 
