@@ -13,7 +13,8 @@
     "build:cjs": "swc src -d lib -C module.type=commonjs",
     "build:esm": "swc src -d esm",
     "build:type": "tsc --emitDeclarationOnly --outDir types",
-    "build": "yarn build:type && yarn build:cjs && yarn build:esm"
+    "build": "yarn build:type && yarn build:cjs && yarn build:esm",
+    "prepare": "yarn build"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
