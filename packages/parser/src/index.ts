@@ -40,7 +40,8 @@ const escape: Parjser<string> =
 
 const tagName: Parjser<string> =
 	letter().pipe(
-		or(digit())
+		or(digit()),
+		or(string('/'))
 	);
 
 type Tag = { name: 'Tag', tagName: string, content: Atom[] };
@@ -50,6 +51,10 @@ const tag: Parjser<Tag> =
 		map(result => result.join(''))
 	).pipe(
 		thenPick((content) => {
+			if (content.endsWith('/')) {
+				return result({ name: 'Tag', tagName: content, content: [] });
+			}
+			
 			const tagClose = string(content)
 				.pipe(
 					between('</', '>')
