@@ -31,10 +31,10 @@ const access = (object: Record<string, unknown>, key: string): unknown => {
 };
 
 const accessWithNamespace =
-	(i18nOrNamespacedI18n: I18nObject | NamespacedI18n, lang: string, key: string): I18nValue => {
-		const namespace = key.split(':')[0];
+	(i18nOrNamespacedI18n: I18nObject | NamespacedI18n, namespacedKey: string, context: I18nContextType): I18nValue => {
+		const [key, namespace] = namespacedKey.split(':').reverse();
 		const i18n = namespace ? access(i18nOrNamespacedI18n, namespace) as I18nObject : i18nOrNamespacedI18n;
-		return access(i18n[lang], key) as I18nValue;
+		return access(i18n[context.lang] ?? i18n[context.fallbackLang], key) as I18nValue;
 	};
 
 const isI18nPluralization = (value: I18nValue): value is I18nPluralization =>
@@ -74,7 +74,7 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 		}, []);
 
 	const t = (key: string, options: TranslateOptions = {}): ReactNode => {
-		const value = accessWithNamespace(i18n, context.lang, key);
+		const value = accessWithNamespace(i18n, key, context);
 		if (isI18nPluralization(value)) {
 			if (options.$count === 0)
 				return translate(value.zero ?? value.plural, options);
@@ -91,5 +91,11 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 	return { t };
 };
 
-export type I18nContextType = { i18n?: I18nObject | NamespacedI18n, lang: string };
-export const I18nContext = createContext<I18nContextType>({ lang: 'en' });
+export type I18nContextType = {
+	i18n?: I18nObject | NamespacedI18n,
+	lang: string
+	fallbackLang: string
+};
+
+export const I18nContext = createContext<I18nContextType>({ lang: 'en', fallbackLang: 'en' });
+export const I18nProvider = I18nContext.Provider;
