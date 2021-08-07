@@ -14,7 +14,7 @@ export type NamespacedI18n = { [key: string]: I18nObject | NamespacedI18n };
 
 export type TranslateOptions =
 	{ $count?: number } &
-	{ [key: string]: string | FunctionComponent<{ children: ReactNode }> };
+	{ [key: string]: string | ReactNode | FunctionComponent<{ children: ReactNode }> };
 
 export type TranslateFunction =
 	(key: string, options?: TranslateOptions) => ReactNode;
@@ -55,7 +55,7 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 			}
 
 			if (atom.name === 'Interpolation') {
-				return options[atom.content] as string ?? '';
+				return options[atom.content] as ReactNode ?? '';
 			}
 
 			if (atom.name === 'Tag') {
