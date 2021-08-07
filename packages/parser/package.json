@@ -20,7 +20,7 @@
     "parjs": "^0.12.7"
   },
   "devDependencies": {
-    "@swc/cli": "^0.1.46",
+    "@swc/cli": "0.1.45",
     "@swc/core": "^1.2.70",
     "@types/js-yaml": "^4.0.2",
     "chokidar": "^3.5.2",

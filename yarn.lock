@@ -35,6 +35,18 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@swc/cli@0.1.45":
+  version "0.1.45"
+  resolved "https://registry.yarnpkg.com/@swc/cli/-/cli-0.1.45.tgz#811592008165ee938438c76992f405684c5b3d05"
+  integrity sha512-J2Q49WYJ0LR5jBCHaEIHiLu+GGHw2mR8vCsCsnYbb7qP9qORtBYNrJ6FN8ohV+3OZI4HSXr6ytAL09AddmVpxg==
+  dependencies:
+    commander "^7.1.0"
+    convert-source-map "^1.6.0"
+    fast-glob "^3.2.5"
+    lodash "^4.17.11"
+    slash "3.0.0"
+    source-map "^0.7.3"
+
 "@swc/cli@^0.1.46":
   version "0.1.46"
   resolved "https://registry.yarnpkg.com/@swc/cli/-/cli-0.1.46.tgz#b6de4f39bd451ef6397c60a682ff6e3e7112bedc"
@@ -201,6 +213,13 @@ commander@^7.1.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-7.2.0.tgz#a36cb57d0b501ce108e4d20559a150a391d97ab7"
   integrity sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==
 
+convert-source-map@^1.6.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.8.0.tgz#f3373c32d21b4d780dd8004514684fb791ca4369"
+  integrity sha512-+OQdjP49zViI/6i7nIJpA8rAl4sV/JdPfU9nZs3VqOwGIgizICvuN2ru6fMd+4llL0tar18UYJXfZ/TWtmhUjA==
+  dependencies:
+    safe-buffer "~5.1.1"
+
 csstype@^3.0.2:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.0.8.tgz#d2266a792729fb227cd216fb572f43728e1ad340"
@@ -274,7 +293,7 @@ js-yaml@^4.1.0:
   dependencies:
     argparse "^2.0.1"
 
-lodash@^4.17.13:
+lodash@^4.17.11, lodash@^4.17.13:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -340,6 +359,11 @@ run-parallel@^1.1.9:
   integrity sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==
   dependencies:
     queue-microtask "^1.2.2"
+
+safe-buffer@~5.1.1:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
+  integrity sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==
 
 shallowequal@^1.0.2:
   version "1.1.0"
