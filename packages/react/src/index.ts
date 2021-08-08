@@ -7,10 +7,11 @@ export type I18nAtom = string | I18nAtomInterpolation | I18nAtomTag;
 export type I18nPluralization =
 	{ zero?: I18nAtom[], singular: I18nAtom[], plural: I18nAtom[] };
 
+export type I18nLang = string;
 export type I18nValue = I18nAtom[] | I18nPluralization;
-export type I18nObject = { [key: string]: I18n };
-export type I18n = { [key: string]: I18nAtom[] | I18nPluralization | I18n };
-export type NamespacedI18n = { [key: string]: I18nObject | NamespacedI18n };
+export type I18n = { [key: string]: I18nValue | I18n };
+export type I18nObject = { [lang in I18nLang]: I18n };
+export type NamespacedI18nObject = { [namespaceKey: string]: I18nObject | NamespacedI18nObject };
 
 export type TranslateOptionsBase =
 	{ $count?: number };
@@ -41,7 +42,7 @@ const access = (object: Record<string, unknown>, key: string): unknown => {
 };
 
 const accessWithNamespace =
-	(i18nOrNamespacedI18n: I18nObject | NamespacedI18n, namespacedKey: string, context: I18nContextType): I18nValue => {
+	(i18nOrNamespacedI18n: NamespacedI18nObject, namespacedKey: string, context: I18nContextType): I18nValue => {
 		const [key, namespace] = namespacedKey.split(':').reverse();
 		const i18n = namespace ? access(i18nOrNamespacedI18n, namespace) as I18nObject : i18nOrNamespacedI18n;
 		return access(i18n[context.lang] ?? i18n[context.fallbackLang], key) as I18nValue;
@@ -69,7 +70,7 @@ export type UseI18n = {
 	ts: TranslateStringFunction
 };
 
-export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n => {
+export const useI18n = (componentI18n?: NamespacedI18nObject): UseI18n => {
 	const context = useContext(I18nContext);
 	const i18n = componentI18n ?? context.i18n ?? {};
 
@@ -125,9 +126,9 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 };
 
 export type I18nContextType = {
-	i18n?: I18nObject | NamespacedI18n,
-	lang: string
-	fallbackLang: string
+	i18n?: NamespacedI18nObject,
+	lang: I18nLang,
+	fallbackLang: I18nLang
 };
 
 export const I18nContext = createContext<I18nContextType>({ lang: 'en', fallbackLang: 'en' });
