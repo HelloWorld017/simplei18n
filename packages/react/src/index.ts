@@ -125,9 +125,6 @@ export const useI18n = (componentI18n?: NamespacedI18nObject): UseI18n => {
 	return { t, ts };
 };
 
-export const makeUseI18n = (componentI18n: NamespacedI18nObject): () => UseI18n =>
-	() => useI18n(componentI18n);
-
 export type I18nContextType = {
 	i18n?: NamespacedI18nObject,
 	lang: I18nLang,
