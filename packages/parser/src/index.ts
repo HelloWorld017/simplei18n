@@ -1,7 +1,21 @@
 import yaml from 'js-yaml';
 
-import { anyChar, digit, letter, result, string } from 'parjs';
-import { between, later, many, manyBetween, manyTill, map, or, qthen, thenPick } from 'parjs/combinators';
+import { anyChar, digit, letter, result, string, whitespace } from 'parjs';
+import {
+	between,
+	later,
+	many,
+	manyBetween,
+	manyTill,
+	map,
+	maybe,
+	or,
+	qthen,
+	then,
+	thenPick,
+	thenq
+} from 'parjs/combinators';
+
 import type { Parjser } from 'parjs';
 
 const stringifyConsecutive = <T>() =>
@@ -40,22 +54,27 @@ const escape: Parjser<string> =
 
 const tagName: Parjser<string> =
 	letter().pipe(
-		or(digit()),
-		or(string('/'))
+		or(digit())
 	);
 
 type Tag = { name: 'Tag', tagName: string, content: Atom[] };
 const tag: Parjser<Tag> =
-	tagName.pipe(
-		manyBetween('<', '>'),
-		map(result => result.join(''))
+	string('<').pipe(
+		qthen(tagName.pipe(
+			many(),
+			map(chars => chars.join(''))
+		)),
+		thenq(whitespace().pipe(many())),
+		then(string('/').pipe(maybe(''), map(item => !!item))),
+		map(([ tagName, closes ]) => ({ tagName, closes })),
+		thenq(string('>'))
 	).pipe(
-		thenPick((content) => {
-			if (content.endsWith('/')) {
-				return result({ name: 'Tag', tagName: content, content: [] });
+		thenPick(({ tagName, closes }) => {
+			if (closes) {
+				return result({ name: 'Tag', tagName, content: [] });
 			}
-			
-			const tagClose = string(content)
+
+			const tagClose = string(tagName)
 				.pipe(
 					between('</', '>')
 				);
@@ -63,7 +82,7 @@ const tag: Parjser<Tag> =
 			return atom.pipe(
 				manyTill(tagClose),
 				stringifyConsecutive<Atom>(),
-				map(result => ({ name: 'Tag', tagName: content, content: result }))
+				map(result => ({ name: 'Tag', tagName, content: result }))
 			);
 		})
 	);
