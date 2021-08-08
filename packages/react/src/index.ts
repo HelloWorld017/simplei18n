@@ -12,12 +12,22 @@ export type I18nObject = { [key: string]: I18n };
 export type I18n = { [key: string]: I18nAtom[] | I18nPluralization | I18n };
 export type NamespacedI18n = { [key: string]: I18nObject | NamespacedI18n };
 
+export type TranslateOptionsBase =
+	{ $count?: number };
+
 export type TranslateOptions =
-	{ $count?: number } &
+	TranslateOptionsBase &
 	{ [key: string]: string | ReactNode | ComponentType<{ children: ReactNode }> };
 
 export type TranslateFunction =
 	(key: string, options?: TranslateOptions) => ReactNode;
+
+export type TranslateStringOptions =
+	TranslateOptionsBase &
+	{ [key: string]: string };
+
+export type TranslateStringFunction =
+	(key: string, options?: TranslateStringOptions) => string;
 
 const access = (object: Record<string, unknown>, key: string): unknown => {
 	const keyLevels = key.split('.');
@@ -40,8 +50,23 @@ const accessWithNamespace =
 const isI18nPluralization = (value: I18nValue): value is I18nPluralization =>
 	!Array.isArray(value);
 
+const getPluralization = (count: number | undefined, value: I18nValue) => {
+	if (!isI18nPluralization(value)) {
+		return value;
+	}
+
+	if (count === 0)
+		return value.zero ?? value.plural;
+
+	if (count === 1)
+		return value.singular;
+
+	return value.plural;
+};
+
 export type UseI18n = {
-	t: TranslateFunction
+	t: TranslateFunction,
+	ts: TranslateStringFunction
 };
 
 export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n => {
@@ -73,22 +98,30 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 			return null;
 		}, []);
 
+	const translateString = (atoms: I18nAtom[], options: TranslateStringOptions): string =>
+		atoms.map(atom => {
+			if (typeof atom === 'string') {
+				return atom;
+			}
+
+			if (atom.name === 'Interpolation') {
+				return options[atom.content];
+			}
+
+			return '';
+		}).join('');
+
 	const t = (key: string, options: TranslateOptions = {}): ReactNode => {
 		const value = accessWithNamespace(i18n, key, context);
-		if (isI18nPluralization(value)) {
-			if (options.$count === 0)
-				return translate(value.zero ?? value.plural, options);
-
-			if (options.$count === 1)
-				return translate(value.singular, options);
-
-			return translate(value.plural, options);
-		}
-
-		return translate(value, options);
+		return translate(getPluralization(options.$count, value), options);
 	};
 
-	return { t };
+	const ts = (key: string, options: TranslateStringOptions = {}): string => {
+		const value = accessWithNamespace(i18n, key, context);
+		return translateString(getPluralization(options.$count, value), options);
+	}
+
+	return { t, ts };
 };
 
 export type I18nContextType = {
