@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext } from 'react';
+import { createContext, createElement, ReactHTML, useContext } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 
 export type I18nAtomInterpolation = { name: 'Interpolation', content: string };
@@ -18,7 +18,7 @@ export type TranslateOptionsBase =
 
 export type TranslateOptions =
 	TranslateOptionsBase &
-	{ [key: string]: string | ReactNode | ComponentType<{ children: ReactNode }> };
+	{ [key: string]: string | ReactNode | ComponentType<{ children?: ReactNode }> };
 
 export type TranslateFunction =
 	(key: string, options?: TranslateOptions) => ReactNode;
@@ -74,7 +74,7 @@ export const useI18n = (componentI18n?: NamespacedI18nObject): UseI18n => {
 	const context = useContext(I18nContext);
 	const i18n = componentI18n ?? context.i18n ?? {};
 
-	const translate = (atoms: I18nAtom[], options: TranslateOptions): ReactNode =>
+	const translate = (atoms: I18nAtom[], options: TranslateOptions): ReactNode[] =>
 		atoms.map<ReactNode>((atom, index) => {
 			if (typeof atom === 'string') {
 				return atom;
@@ -85,14 +85,19 @@ export const useI18n = (componentI18n?: NamespacedI18nObject): UseI18n => {
 			}
 
 			if (atom.name === 'Tag') {
-				const component = options[atom.tagName] as ComponentType<{ children: ReactNode }>;
+				const component = options[atom.tagName] as ComponentType<{ children?: ReactNode }> | keyof ReactHTML;
 				if (!component) {
 					return null;
 				}
 
+				const children = translate(atom.content, options);
+
 				return createElement(
 					component,
-					{ children: translate(atom.content, options), key: `${atom.tagName}-${index}` }
+					{
+						key: `${atom.tagName}-${index}`,
+						...(children.length > 0 ? { children } : null)
+					}
 				);
 			}
 
