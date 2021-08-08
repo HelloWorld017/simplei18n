@@ -1,5 +1,5 @@
 import { createContext, createElement, useContext } from 'react';
-import type { FunctionComponent, ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 export type I18nAtomInterpolation = { name: 'Interpolation', content: string };
 export type I18nAtomTag = { name: 'Tag', tagName: string, content: I18nAtom[] };
@@ -14,7 +14,7 @@ export type NamespacedI18n = { [key: string]: I18nObject | NamespacedI18n };
 
 export type TranslateOptions =
 	{ $count?: number } &
-	{ [key: string]: string | ReactNode | FunctionComponent<{ children: ReactNode }> };
+	{ [key: string]: string | ReactNode | ComponentType<{ children: ReactNode }> };
 
 export type TranslateFunction =
 	(key: string, options?: TranslateOptions) => ReactNode;
@@ -59,7 +59,7 @@ export const useI18n = (componentI18n?: I18nObject | NamespacedI18n): UseI18n =>
 			}
 
 			if (atom.name === 'Tag') {
-				const component = options[atom.tagName] as FunctionComponent<{ children: ReactNode }>;
+				const component = options[atom.tagName] as ComponentType<{ children: ReactNode }>;
 				if (!component) {
 					return null;
 				}
