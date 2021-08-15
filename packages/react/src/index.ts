@@ -67,7 +67,8 @@ const getPluralization = (count: number | undefined, value: I18nValue) => {
 
 export type UseI18n = {
 	t: TranslateFunction,
-	ts: TranslateStringFunction
+	ts: TranslateStringFunction,
+	length: (key: string) => number
 };
 
 export const useI18n = (componentI18n?: NamespacedI18nObject): UseI18n => {
@@ -118,16 +119,48 @@ export const useI18n = (componentI18n?: NamespacedI18nObject): UseI18n => {
 		}).join('');
 
 	const t = (key: string, options: TranslateOptions = {}): ReactNode => {
-		const value = accessWithNamespace(i18n, key, context);
-		return translate(getPluralization(options.$count, value), options);
+		try {
+			const value = accessWithNamespace(i18n, key, context);
+			return translate(getPluralization(options.$count, value), options);
+		} catch(err) {
+			return null;
+		}
 	};
 
 	const ts = (key: string, options: TranslateStringOptions = {}): string => {
-		const value = accessWithNamespace(i18n, key, context);
-		return translateString(getPluralization(options.$count, value), options);
+		try {
+			const value = accessWithNamespace(i18n, key, context);
+			return translateString(getPluralization(options.$count, value), options);
+		} catch(err) {
+			return '';
+		}
 	}
 
-	return { t, ts };
+	const length = (key: string): number => {
+		try {
+			const value = accessWithNamespace(i18n, key, context);
+
+			if (Array.isArray(value) && !Array.isArray(value[0])) {
+				// Is I18nAtom[]
+				return 1;
+			}
+
+			if (Array.isArray(value)) {
+				// Is I18nAtom[][]
+				return value.length;
+			}
+
+			if (value) {
+				// Is I18nPluralization
+				return 1;
+			}
+		} catch {}
+		
+		// Does not exists
+		return 0;
+	}
+
+	return { t, ts, length };
 };
 
 export type I18nContextType = {
