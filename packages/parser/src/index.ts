@@ -64,7 +64,7 @@ const tag: Parjser<Tag> =
 			many(),
 			map(chars => chars.join(''))
 		)),
-		thenq(whitespace().pipe(many())),
+		thenq(whitespace()),
 		then(string('/').pipe(maybe(''), map(item => !!item))),
 		map(([ tagName, closes ]) => ({ tagName, closes })),
 		thenq(string('>'))
