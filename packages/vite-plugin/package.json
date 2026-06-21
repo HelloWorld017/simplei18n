@@ -13,11 +13,10 @@
     "build:cjs": "swc src -d lib -C module.type=commonjs",
     "build:esm": "swc src -d esm",
     "build:type": "tsc --emitDeclarationOnly --outDir types",
-    "build": "yarn build:type && yarn build:cjs && yarn build:esm",
-    "prepare": "yarn build"
+    "build": "pnpm run '/^build:.*/'"
   },
   "dependencies": {
-    "@simplei18n/parser": "^0.0.3"
+    "@simplei18n/parser": "workspace:*"
   },
   "devDependencies": {
     "@swc/cli": "0.1.45",
