@@ -10,11 +10,11 @@ You should add the `simplei18n` plugin in your bundler.
 import simplei18n from '@simplei18n/vite-plugin';
 
 export default {
-	// ...some other configs
-	plugins: [
-		// ...other plugins
-		simplei18n()
-	]
+  // ...some other configs
+  plugins: [
+    // ...other plugins
+    simplei18n()
+  ]
 };
 ```
 
@@ -48,40 +48,40 @@ import GlobalI18n from './Global.i18n.yml';
 import MyComponentI18n from './MyComponent.i18n.yml';
 
 const TagComponent = ({ children: ReactNode }): JSX.Element => {
-	<span className="tag">{ children }</span>
+  <span className="tag">{ children }</span>
 };
 
 const MyComponent = (): JSX.Element => {
-	const { t } = useI18n(MyComponentI18n);
-	return (
-		<span>
-			{
-				t('someName', {
-					interpolation: 'Interpolation',
-					interpolation2: 'Interp',
-					tagname: TagComponent,
-					tag2: TagComponent
-				})
-			}
+  const { t } = useI18n(MyComponentI18n);
+  return (
+    <span>
+      {
+        t('someName', {
+          interpolation: 'Interpolation',
+          interpolation2: 'Interp',
+          tagname: TagComponent,
+          tag2: TagComponent
+        })
+      }
 
-			{
-				t('pluralization', { $count: 2 })
-			}
-		</span>
-	);
+      {
+        t('pluralization', { $count: 2 })
+      }
+    </span>
+  );
 };
 
 const MyComponentWithGlobalI18n = (): JSX.Element => {
-	const { t } = useI18n();
-	return (
-		<span> { t('someNamespace.MyComponent:aaa') } </span>
-	)
+  const { t } = useI18n();
+  return (
+    <span> { t('someNamespace.MyComponent:aaa') } </span>
+  )
 };
 
 render(
-	<I18nContext value={{ lang: 'ko', i18n: GlobalI18n }}>
-		<MyComponent />
-		<MyComponentWithGlobalI18n />
-	</I18nContext>
+  <I18nContext value={{ lang: 'ko', i18n: GlobalI18n }}>
+    <MyComponent />
+    <MyComponentWithGlobalI18n />
+  </I18nContext>
 );
 ```
