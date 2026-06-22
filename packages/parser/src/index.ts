@@ -35,11 +35,16 @@ const stringifyConsecutive = <T>() =>
 
 const atom = later<Atom>();
 
-type Interpolation = { name: 'Interpolation', content: string };
+export const Kind  = {
+  Interpolation: 1,
+  Tag: 2,
+} as const;
+
+type Interpolation = [typeof Kind.Interpolation, string];
 const interpolation: Parjser<Interpolation> =
   anyChar().pipe(
     manyBetween(string('{'), string('}')),
-    map(result => ({ name: 'Interpolation', content: result.join('') }))
+    map(result => ([Kind.Interpolation, result.join('')]))
   );
 
 const escape: Parjser<string> =
@@ -57,7 +62,7 @@ const tagName: Parjser<string> =
     or(digit())
   );
 
-type Tag = { name: 'Tag', tagName: string, content: Atom[] };
+type Tag = [typeof Kind.Tag, string, Atom[]];
 const tag: Parjser<Tag> =
   string('<').pipe(
     qthen(tagName.pipe(
@@ -71,7 +76,7 @@ const tag: Parjser<Tag> =
   ).pipe(
     thenPick(({ tagName, closes }) => {
       if (closes) {
-        return result({ name: 'Tag', tagName, content: [] });
+        return result([Kind.Tag, tagName, []]);
       }
 
       const tagClose = string(tagName)
@@ -82,7 +87,7 @@ const tag: Parjser<Tag> =
       return atom.pipe(
         manyTill(tagClose),
         stringifyConsecutive<Atom>(),
-        map(result => ({ name: 'Tag', tagName, content: result }))
+        map(result => [Kind.Tag, tagName, result])
       );
     })
   );
@@ -125,6 +130,11 @@ export const parse = (text: string): ParsedI18n => {
   return parseAllI18n(i18nData);
 };
 
+export const parseScope = (text: string): string | undefined => {
+  const match = text.match(/^\s*#\s*scope:\s*([^\r\n#]+?)\s*$/m);
+  return match?.[1]?.trim() || undefined;
+};
+
 export const load = (text: string): string => {
   const i18n = parse(text);
   return (
@@ -132,3 +142,5 @@ export const load = (text: string): string => {
     `export default i18n;`
   );
 }
+
+export type { I18n, Atom as I18nAtom, Interpolation as I18nAtomInterpolation, Tag as I18nAtomTag };

@@ -1,10 +1,8 @@
 {
-  "name": "@simplei18n/vite-plugin",
+  "name": "simplei18n",
   "version": "0.0.3",
   "description": "Yet another simple, minimal i18n library",
   "type": "module",
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.mts",
   "repository": "https://github.com/HelloWorld017/simplei18n",
   "author": "Khinenw",
   "license": "MIT",
@@ -13,6 +11,6 @@
     "watch": "tsdown --watch"
   },
   "dependencies": {
-    "@simplei18n/parser": "workspace:*"
+    "@simplei18n/cli": "workspace:*"
   }
 }

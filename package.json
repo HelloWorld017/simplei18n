@@ -1,5 +1,5 @@
 {
-  "name": "simplei18n",
+  "name": "@simplei18n/root",
   "version": "0.0.2",
   "description": "Yet another simple, minimal i18n library",
   "main": "index.js",
@@ -8,12 +8,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "pnpm run --filter '@simplei18n/*' build"
+    "build": "pnpm run --filter './packages/*' build"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@swc/cli": "^0.1.46",
-    "@swc/core": "^1.2.70",
-    "typescript": "^4.3.5"
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3"
   }
 }
