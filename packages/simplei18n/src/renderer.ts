@@ -1,6 +1,8 @@
+import path from 'node:path';
 import { Parser, Document, parse as parseYaml, parseDocument, CST } from 'yaml';
 import { parse as parseI18n } from './parser';
 import { I18nAtomKind } from './types';
+import type { TargetConfig } from './config';
 import type { I18nAtom } from './types';
 
 type KeyTree = {
@@ -18,10 +20,31 @@ const indent = (level: number): string => '  '.repeat(level);
 const isValidIdentifier = (value: string): boolean => /^[A-Za-z_$][\w$]*$/.test(value);
 const propertyName = (value: string): string =>
   isValidIdentifier(value) ? value : stringifyTsString(value);
+
 const escapeComment = (value: string): string =>
   value.replace(/\*\//g, '*\\/').replace(/[\r\n]+/g, ' ');
+
 const stringifyTsString = (value: string): string => JSON.stringify(value);
 const normalizePluralizationKey = (key: string) => key.replace(/\.(?:plural|singular|zero)$/, '');
+const toImportPath = (fromDir: string, toFile: string): string => {
+  const relative = path.relative(fromDir, toFile).replace(/\\/g, '/');
+  return relative.startsWith('.') ? relative : `./${relative}`;
+};
+
+const toPascalCase = (value: string): string => {
+  const words = value.split(/[^A-Za-z0-9]+/).filter(Boolean);
+  if (words.length === 0) {
+    return 'Locale';
+  }
+
+  return words.map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join('');
+};
+
+const localeImportName = (target: TargetConfig, locale: string): string =>
+  `${target.name}${toPascalCase(locale)}`;
+
+const isEagerLocale = (target: TargetConfig, locale: string): boolean =>
+  typeof target.eager === 'boolean' ? target.eager : target.eager.has(locale);
 
 const collectAtomMetadata = (atoms: I18nAtom[], metadata: TranslationMetadata): void => {
   atoms.forEach(atom => {
@@ -147,20 +170,71 @@ export const renderTypes = (
   ].join('\n');
 };
 
-export const renderIndex = (locales: string[], defaultLocale: string): string =>
-  [
+export const renderIndex = (
+  locales: string[],
+  defaultLocale: string,
+  target: TargetConfig,
+): string => {
+  const eagerLocales = locales.filter(locale => isEagerLocale(target, locale));
+
+  return [
     "import { defineLocales } from 'simplei18n';",
+    ...eagerLocales.map(
+      locale =>
+        `import ${localeImportName(target, locale)} from ${stringifyTsString(`./_locales/${locale}.i18n.yaml`)};`,
+    ),
     '',
     'export default defineLocales({',
     '  locales: {',
-    ...locales.map(
-      locale => `    ${propertyName(locale)}: () => import('./_locales/${locale}.i18n.yaml'),`,
-    ),
+    ...locales.map(locale => {
+      const localeValue = isEagerLocale(target, locale)
+        ? localeImportName(target, locale)
+        : `() => import(${stringifyTsString(`./_locales/${locale}.i18n.yaml`)})`;
+
+      return `    ${propertyName(locale)}: ${localeValue},`;
+    }),
     '  },',
     `  defaultLocale: ${stringifyTsString(defaultLocale)},`,
     '});',
     '',
   ].join('\n');
+};
+
+export const renderMergedIndex = (
+  targets: TargetConfig[],
+  locales: string[],
+  defaultLocale: string,
+  outputPath: string,
+  workDir: string,
+): string => {
+  const outputDir = path.dirname(outputPath);
+  const imports = targets.flatMap(target =>
+    locales.map(locale => ({
+      name: localeImportName(target, locale),
+      path: toImportPath(
+        outputDir,
+        path.resolve(workDir, target.outDir, '_locales', `${locale}.i18n.yaml`),
+      ),
+    })),
+  );
+
+  return [
+    "import { defineMergedLocales } from 'simplei18n';",
+    ...imports.map(item => `import ${item.name} from ${stringifyTsString(item.path)};`),
+    '',
+    'export default defineMergedLocales({',
+    '  locales: {',
+    ...locales.flatMap(locale => [
+      `    ${propertyName(locale)}: [`,
+      ...targets.map(target => `      ${localeImportName(target, locale)},`),
+      '    ],',
+    ]),
+    '  },',
+    `  defaultLocale: ${stringifyTsString(defaultLocale)},`,
+    '});',
+    '',
+  ].join('\n');
+};
 
 type RenderI18nOptions = {
   removeDangling?: boolean;

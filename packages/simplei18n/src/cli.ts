@@ -7,7 +7,7 @@ import { stringify } from 'yaml';
 import packageInfo from '../package.json';
 import { loadConfig } from './config';
 import { extract } from './extractor';
-import { renderI18n, renderIndex, renderTypes } from './renderer';
+import { renderI18n, renderIndex, renderMergedIndex, renderTypes } from './renderer';
 import type { NormalizedConfig, TargetConfig } from './config';
 
 type CommonFlags = {
@@ -16,12 +16,10 @@ type CommonFlags = {
 
 type GenerateOptions = {
   removeDangling?: boolean;
-  wrapLength?: number | null;
 };
 
 type GenerateFlags = CommonFlags & {
   'remove-dangling': boolean;
-  'wrap-length': number;
 };
 
 export const generateTarget = async (
@@ -51,7 +49,7 @@ export const generateTarget = async (
     const existing = await fs.readFile(localePath, 'utf8').catch(() => undefined);
     const merged = renderI18n(source, existing, {
       removeDangling: options.removeDangling,
-      wrapLength: options.wrapLength,
+      wrapLength: config.wrapLength,
     });
 
     await fs.writeFile(localePath, merged);
@@ -64,7 +62,7 @@ export const generateTarget = async (
   );
   await fs.writeFile(
     path.join(outDir, 'index.ts'),
-    renderIndex(config.locales, config.defaultLocale),
+    renderIndex(config.locales, config.defaultLocale, target),
   );
 
   process.stdout.write(`Generated ${path.relative(workDir, outDir)}\n`);
@@ -77,6 +75,16 @@ export const generate = async (
 ): Promise<void> => {
   for (const target of config.target) {
     await generateTarget(workDir, target, config, options);
+  }
+
+  if (config.mergeTo) {
+    const outputPath = path.resolve(workDir, config.mergeTo);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(
+      outputPath,
+      renderMergedIndex(config.target, config.locales, config.defaultLocale, outputPath, workDir),
+    );
+    process.stdout.write(`Generated ${path.relative(workDir, outputPath)}\n`);
   }
 };
 
@@ -96,12 +104,10 @@ export const cli = async (cwd?: string, argv?: string[]) => {
       'Removes dangling translation keys in existing locale files.',
       false,
     )
-    .option('-w, --wrap-length', 'Changes default wrap length', 80)
     .action(async (opts: GenerateFlags) => {
       const config = await loadConfig(workDir, opts.config);
       await generate(workDir, config, {
         removeDangling: opts['remove-dangling'],
-        wrapLength: opts['wrap-length'],
       });
     });
 

@@ -27,7 +27,8 @@
   },
   "scripts": {
     "build": "tsdown",
-    "watch": "tsdown --watch"
+    "watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "fast-glob": "^3.3.3",

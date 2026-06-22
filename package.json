@@ -11,6 +11,7 @@
   "scripts": {
     "lint": "oxlint .",
     "format": "oxfmt .",
+    "typecheck": "pnpm run --filter './packages/*' typecheck",
     "build": "pnpm run --filter './packages/*' build"
   },
   "devDependencies": {

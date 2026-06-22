@@ -3,7 +3,10 @@ import type {
   Config,
   I18nAtom,
   I18nInterpolable,
-  LocalesConfig,
+  Locale,
+  LocaleKey,
+  LocalesConfigInput,
+  MergedLocalesConfigInput,
   RawI18n,
   TranslateFunction,
   TranslateFunctionInternal,
@@ -11,6 +14,7 @@ import type {
   UnknownTranslationDescriptor,
   UnknownTranslateOptions,
   TranslationMap,
+  MergedLocalesConfig,
 } from './types';
 
 export const yaml = (strings: TemplateStringsArray, ...values: never[]): RawI18n => {
@@ -23,7 +27,21 @@ export const yaml = (strings: TemplateStringsArray, ...values: never[]): RawI18n
 
 export const defineI18n = (_source: RawI18n): void => {};
 export const defineConfig = <TConfig extends Config>(config: TConfig): TConfig => config;
-export const defineLocales = (config: LocalesConfig): LocalesConfig => config;
+export const defineLocales = <TConfig extends LocalesConfigInput>(config: TConfig): TConfig =>
+  config;
+
+export const defineMergedLocales = (config: MergedLocalesConfigInput): MergedLocalesConfig => ({
+  locales: Object.fromEntries(
+    Object.entries(config.locales).map(([locale, translations]) => [
+      locale,
+      Object.assign({}, ...translations),
+    ]),
+  ) as Record<LocaleKey, Locale>,
+  defaultLocale: config.defaultLocale,
+});
+
+export const isPromise = <T, TPromise>(value: T | Promise<TPromise>): value is Promise<TPromise> =>
+  !!value && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
 
 export const getPluralization = (
   translations: Translations,

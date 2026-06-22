@@ -1,6 +1,6 @@
-import { createTranslateFunction, wrapWithProxy } from '@/utils';
-import { createContext, createElement, use, useMemo } from 'react';
 /** @jsxImportSource react */
+import { createTranslateFunction, isPromise, wrapWithProxy } from '@/utils';
+import { createContext, createElement, use, useMemo } from 'react';
 import type {
   LocaleKey,
   LocalesConfig,
@@ -18,7 +18,7 @@ type NodesTag = ComponentType<PropsWithChildren> | keyof JSX.IntrinsicElements;
 
 type I18nResource = {
   defaultLocale: LocaleDefaultKey;
-  load: (lang: LocaleKey) => Promise<Translations>;
+  load: (lang: LocaleKey) => Translations | Promise<Translations>;
 };
 
 export const createI18nResource = (locales: LocalesConfig): I18nResource => {
@@ -31,9 +31,13 @@ export const createI18nResource = (locales: LocalesConfig): I18nResource => {
         return promise;
       }
 
-      const newPromise = locales.locales[lang]().then(mod => mod.default);
-      resourceMap.set(lang, newPromise);
-      return newPromise;
+      if (typeof locales.locales[lang] === 'function') {
+        const newPromise = locales.locales[lang]().then(mod => mod.default);
+        resourceMap.set(lang, newPromise);
+        return newPromise;
+      }
+
+      return locales.locales[lang];
     },
   };
 };
@@ -69,7 +73,15 @@ export const useI18n = () => {
     throw new Error('No I18nProvider found!');
   }
 
-  const translationsList = ctx?.resources.map(resource => use(resource.load(ctx.lang)));
+  const translationsList = ctx?.resources.map(resource => {
+    const result = resource.load(ctx.lang);
+    if (isPromise(result)) {
+      return use(result);
+    }
+
+    return result;
+  });
+
   const translations = useMemo(
     () => Object.assign({}, ...translationsList) as Translations,
     [translationsList],

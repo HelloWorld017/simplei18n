@@ -1,9 +1,11 @@
-export * from './utils';
+export { defineI18n, defineConfig, defineLocales, defineMergedLocales, yaml } from './utils';
 export type {
-  I18nConfig,
+  Locale,
   LocaleKey,
-  LocaleModule,
   LocalesConfig,
+  LocalesConfigInput,
+  MergedLocalesConfig,
+  MergedLocalesConfigInput,
   RawI18n,
   I18nConfig as SimpleI18nConfig,
   Translations,

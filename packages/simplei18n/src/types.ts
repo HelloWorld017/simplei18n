@@ -30,9 +30,26 @@ export type LocaleDefaultKey = I18nConfig extends { defaultLocale: infer TDefaul
   ? TDefaultLocale & LocaleKey
   : LocaleKey;
 
-export type LocaleModule = { default: Translations };
+export type Locale = Translations;
+export type LocaleImport = () => Promise<{ default: Locale }>;
+
 export type LocalesConfig = {
-  locales: Record<LocaleKey, () => Promise<LocaleModule>>;
+  __kind?: 'LocalesConfig';
+  locales: Record<LocaleKey, Locale | LocaleImport>;
+  defaultLocale: LocaleDefaultKey;
+};
+
+export type LocalesConfigInput = {
+  locales: Record<LocaleKey, Locale | LocaleImport>;
+  defaultLocale: LocaleDefaultKey;
+};
+
+export type MergedLocalesConfig = Omit<LocalesConfig, '__kind'> & {
+  __kind?: 'MergedLocalesConfig';
+};
+
+export type MergedLocalesConfigInput = {
+  locales: Record<LocaleKey, Locale[]>;
   defaultLocale: LocaleDefaultKey;
 };
 
