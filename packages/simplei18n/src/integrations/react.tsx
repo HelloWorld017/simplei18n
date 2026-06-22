@@ -1,57 +1,37 @@
 /** @jsxImportSource react */
-import { createTranslateFunction, isPromise, wrapWithProxy } from '@/utils';
+"use client";
+
+import { createI18nResource, createTranslateFunction, isPromise, wrapWithProxy } from '@/utils';
 import { createContext, createElement, use, useMemo } from 'react';
 import type {
   LocaleKey,
-  LocalesConfig,
+  MergedLocalesConfig,
   TranslateOptions,
   TranslationMap,
   Translations,
   UnknownTranslationDescriptor,
-  LocaleDefaultKey,
   TranslateFunctionInternal,
+  LocalesResource,
 } from '@/types';
 import type { ComponentType, JSX, PropsWithChildren, ReactNode } from 'react';
 
 type StringTag = (children: string) => string;
 type NodesTag = ComponentType<PropsWithChildren> | keyof JSX.IntrinsicElements;
 
-type I18nResource = {
-  defaultLocale: LocaleDefaultKey;
-  load: (lang: LocaleKey) => Translations | Promise<Translations>;
-};
-
-export const createI18nResource = (locales: LocalesConfig): I18nResource => {
-  const resourceMap = new Map<LocaleKey, Promise<Translations>>();
-  return {
-    defaultLocale: locales.defaultLocale,
-    load: (lang: LocaleKey) => {
-      const promise = resourceMap.get(lang);
-      if (promise) {
-        return promise;
-      }
-
-      if (typeof locales.locales[lang] === 'function') {
-        const newPromise = locales.locales[lang]().then(mod => mod.default);
-        resourceMap.set(lang, newPromise);
-        return newPromise;
-      }
-
-      return locales.locales[lang];
-    },
-  };
+export const registerI18n = (_mergedLocales: MergedLocalesConfig, _lang: string | null) => {
+  throw new Error('registerI18n is only available in react-server environments.');
 };
 
 type I18nContextType = {
   lang: LocaleKey;
-  resources: I18nResource[];
+  resources: LocalesResource[];
 };
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
 type I18nProviderProps = PropsWithChildren<{
   lang: string | null;
-  resource: I18nResource;
+  resource: LocalesResource;
 }>;
 
 export const I18nProvider = ({ lang, resource, children }: I18nProviderProps) => {
@@ -146,3 +126,4 @@ const Translate = (({ children, $count, $tags, ...opts }: GlobalTranslateInterna
 }) as GlobalTranslate;
 
 export const t = wrapWithProxy({ _: Translate });
+export { createI18nResource };

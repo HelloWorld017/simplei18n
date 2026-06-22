@@ -1,10 +1,11 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: [
-    './src/index.ts',
-    './src/integrations/react.tsx',
-    './src/integrations/vite.ts',
-    './bin/cli.ts',
-  ],
+  entry: {
+    'index': './src/index.ts',
+    'react-client': './src/integrations/react.tsx',
+    'react-server': './src/integrations/react-server.tsx',
+    'vite': './src/integrations/vite.ts',
+    'cli': './bin/cli.ts',
+  },
 });

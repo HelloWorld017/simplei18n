@@ -6,23 +6,27 @@
   "author": "Khinenw",
   "repository": "https://github.com/HelloWorld017/simplei18n",
   "bin": {
-    "simplei18n": "./dist/bin/cli.mjs"
+    "simplei18n": "./dist/cli.mjs"
   },
   "type": "module",
-  "main": "./dist/src/index.mjs",
-  "types": "./dist/src/index.d.mts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.mts",
-      "default": "./dist/src/index.mjs"
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
     "./react": {
-      "types": "./dist/src/integrations/react.d.mts",
-      "default": "./dist/src/integrations/react.mjs"
+      "react-server": {
+        "types": "./dist/react-server.d.mts",
+        "default": "./dist/react-server.mjs"
+      },
+      "types": "./dist/react-client.d.mts",
+      "default": "./dist/react-client.mjs"
     },
     "./vite": {
-      "types": "./dist/src/integrations/vite.d.mts",
-      "default": "./dist/src/integrations/vite.mjs"
+      "types": "./dist/vite.d.mts",
+      "default": "./dist/vite.mjs"
     }
   },
   "scripts": {

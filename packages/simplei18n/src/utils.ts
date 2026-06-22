@@ -15,6 +15,8 @@ import type {
   UnknownTranslateOptions,
   TranslationMap,
   MergedLocalesConfig,
+  LocalesResource,
+  LocalesConfig,
 } from './types';
 
 export const yaml = (strings: TemplateStringsArray, ...values: never[]): RawI18n => {
@@ -128,3 +130,24 @@ export const wrapWithProxy = <T extends object>(value: T, prefix = ''): T & Tran
     },
     apply: (...args) => (Reflect.apply as ProxyHandler<T>['apply'])!(...args),
   }) as T & TranslationMap;
+
+export const createI18nResource = (locales: LocalesConfig): LocalesResource => {
+  const resourceMap = new Map<LocaleKey, Promise<Translations>>();
+  return {
+    defaultLocale: locales.defaultLocale,
+    load: (lang: LocaleKey) => {
+      const promise = resourceMap.get(lang);
+      if (promise) {
+        return promise;
+      }
+
+      if (typeof locales.locales[lang] === 'function') {
+        const newPromise = locales.locales[lang]().then(mod => mod.default);
+        resourceMap.set(lang, newPromise);
+        return newPromise;
+      }
+
+      return locales.locales[lang];
+    },
+  };
+};

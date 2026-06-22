@@ -44,12 +44,19 @@ export type LocalesConfigInput = {
   defaultLocale: LocaleDefaultKey;
 };
 
-export type MergedLocalesConfig = Omit<LocalesConfig, '__kind'> & {
+export type MergedLocalesConfig = {
   __kind?: 'MergedLocalesConfig';
+  locales: Record<LocaleKey, Locale>;
+  defaultLocale: LocaleDefaultKey;
 };
 
 export type MergedLocalesConfigInput = {
   locales: Record<LocaleKey, Locale[]>;
+  defaultLocale: LocaleDefaultKey;
+};
+
+export type LocalesResource = {
+  load: (lang: LocaleKey) => Translations | Promise<Translations>;
   defaultLocale: LocaleDefaultKey;
 };
 
