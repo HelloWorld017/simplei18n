@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["esnext"],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "typeRoots": ["./node_modules/@types"],
     "esModuleInterop": true,
@@ -10,8 +10,6 @@
     "declaration": true
   },
   "exclude": [
-    "packages/*/types/**",
-    "packages/*/lib/**",
-    "packages/*/esm/**"
+    "packages/*/dist/**"
   ]
 }

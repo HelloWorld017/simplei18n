@@ -1,0 +1,21 @@
+{
+  "name": "simplei18n-example-hello-world",
+  "version": "0.0.3",
+  "description": "An example for simplei18n",
+  "type": "module",
+  "repository": "https://github.com/HelloWorld017/simplei18n",
+  "author": "Khinenw",
+  "license": "MIT",
+  "scripts": {
+    "generate": "simplei18n generate"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "simplei18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.93",
+    "@types/react-dom": "^19.2.3"
+  }
+}

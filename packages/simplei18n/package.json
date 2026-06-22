@@ -3,6 +3,11 @@
   "version": "0.0.3",
   "description": "Yet another simple, minimal i18n library",
   "type": "module",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "bin": {
+    "simplei18n": "dist/cli.mjs"
+  },
   "repository": "https://github.com/HelloWorld017/simplei18n",
   "author": "Khinenw",
   "license": "MIT",

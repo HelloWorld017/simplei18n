@@ -317,6 +317,16 @@ const renderTypes = (entries: SourceEntry[], locales: string[], defaultLocale: s
     ...treeLines,
     '  }',
     '}',
+    '',
+    'declare global {',
+    "  declare module '*.i18n.yaml' {",
+    "    import type { Locale } from 'simplei18n';",
+    '    declare const locale: Locale;',
+    '    export default locale;',
+    '  }',
+    '}',
+    '',
+    'export {}',
     ''
   ].join('\n');
 };
@@ -326,7 +336,7 @@ const renderIndex = (locales: string[], defaultLocale: string): string => [
   '',
   'export default defineLocales({',
   '  locales: {',
-  ...locales.map(locale => `    ${propertyName(locale)}: import('./_locales/${locale}.yaml'),`),
+  ...locales.map(locale => `    ${propertyName(locale)}: import('./_locales/${locale}.i18n.yaml'),`),
   '  },',
   `  defaultLocale: ${stringifyTsString(defaultLocale)},`,
   '});',
@@ -357,7 +367,7 @@ const writeTarget = async (
   await fs.mkdir(localeDir, { recursive: true });
 
   for (const locale of config.locales) {
-    const localePath = path.join(localeDir, `${locale}.yaml`);
+    const localePath = path.join(localeDir, `${locale}.i18n.yaml`);
     const existing = await readLocaleFile(localePath);
     const merged = mergeLocale(existing, source, removeDangling);
     await fs.writeFile(localePath, dumpLocale(merged));
@@ -376,4 +386,27 @@ export const generate = async (options: GenerateOptions = {}): Promise<void> => 
   for (const target of config.target) {
     await writeTarget(cwd, target, config, options.removeDangling ?? false);
   }
+};
+
+const printUsage = () => {
+  process.stderr.write('Usage: simplei18n generate [--remove-dangling]\n');
+  process.exitCode = 1;
+};
+
+export const cli = async () => {
+  const [command, ...args] = process.argv.slice(2);
+
+  if (command !== 'generate'|| args.includes('-h') || args.includes('--help')) {
+    printUsage();
+    return;
+  }
+
+  const unknownArgs = args.filter(arg => arg !== '--remove-dangling');
+  if (unknownArgs.length > 0) {
+    process.stderr.write(`Unknown argument: ${unknownArgs.join(', ')}\n`);
+    printUsage();
+    return;
+  }
+
+  await generate({ removeDangling: args.includes('--remove-dangling') });
 };
