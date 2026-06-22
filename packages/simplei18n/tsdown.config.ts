@@ -5,6 +5,6 @@ export default defineConfig({
     './src/index.ts',
     './src/integrations/react.tsx',
     './src/integrations/vite.ts',
-    './bin/cli.ts'
+    './bin/cli.ts',
   ],
 });

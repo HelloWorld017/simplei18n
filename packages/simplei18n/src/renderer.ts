@@ -1,7 +1,7 @@
 import { Parser, Document, parse as parseYaml, parseDocument, CST } from 'yaml';
-
 import { parse as parseI18n } from './parser';
-import { I18nAtomKind, Translations, type I18nAtom } from './types';
+import { I18nAtomKind } from './types';
+import type { I18nAtom } from './types';
 
 type KeyTree = {
   children: Record<string, KeyTree>;
@@ -16,8 +16,10 @@ type TranslationMetadata = {
 
 const indent = (level: number): string => '  '.repeat(level);
 const isValidIdentifier = (value: string): boolean => /^[A-Za-z_$][\w$]*$/.test(value);
-const propertyName = (value: string): string => isValidIdentifier(value) ? value : stringifyTsString(value);
-const escapeComment = (value: string): string => value.replace(/\*\//g, '*\\/').replace(/[\r\n]+/g, ' ');
+const propertyName = (value: string): string =>
+  isValidIdentifier(value) ? value : stringifyTsString(value);
+const escapeComment = (value: string): string =>
+  value.replace(/\*\//g, '*\\/').replace(/[\r\n]+/g, ' ');
 const stringifyTsString = (value: string): string => JSON.stringify(value);
 const normalizePluralizationKey = (key: string) => key.replace(/\.(?:plural|singular|zero)$/, '');
 
@@ -35,7 +37,9 @@ const collectAtomMetadata = (atoms: I18nAtom[], metadata: TranslationMetadata): 
   });
 };
 
-const collectTranslationMetadata = (localeSources: string[]): Record<string, TranslationMetadata> => {
+const collectTranslationMetadata = (
+  localeSources: string[],
+): Record<string, TranslationMetadata> => {
   const metadataByKey: Record<string, TranslationMetadata> = {};
 
   for (const localeSource of localeSources) {
@@ -43,10 +47,10 @@ const collectTranslationMetadata = (localeSources: string[]): Record<string, Tra
     const translations = parseI18n(localeSource);
 
     for (const [key, value] of Object.entries(translations)) {
-      const metadata = metadataByKey[normalizePluralizationKey(key)] ??= {
+      const metadata = (metadataByKey[normalizePluralizationKey(key)] ??= {
         interpolations: new Set(),
         tags: new Set(),
-      };
+      });
 
       const rawValue = rawValues[key];
       if (metadata.value === undefined && typeof rawValue === 'string') {
@@ -84,30 +88,35 @@ const createKeyTree = (source: Record<string, TranslationMetadata>): KeyTree => 
   return root;
 };
 
-const renderKeyTree = (tree: KeyTree, level: number): string[] => {
-  return Object.keys(tree.children).sort().flatMap(key => {
-    const child = tree.children[key];
-    const lines: string[] = [];
-    const childKeys = Object.keys(child.children);
-    const descriptor = child.metadata ? renderDescriptor(child.metadata) : null;
+const renderKeyTree = (tree: KeyTree, level: number): string[] =>
+  Object.keys(tree.children)
+    .sort()
+    .flatMap(key => {
+      const child = tree.children[key];
+      const lines: string[] = [];
+      const childKeys = Object.keys(child.children);
+      const descriptor = child.metadata ? renderDescriptor(child.metadata) : null;
 
-    if (descriptor && child.metadata?.value !== undefined) {
-      lines.push(`${indent(level)}/** ${escapeComment(child.metadata.value)} */`);
-    }
+      if (descriptor && child.metadata?.value !== undefined) {
+        lines.push(`${indent(level)}/** ${escapeComment(child.metadata.value)} */`);
+      }
 
-    if (descriptor && childKeys.length === 0) {
-      lines.push(`${indent(level)}${propertyName(key)}: ${descriptor};`);
+      if (descriptor && childKeys.length === 0) {
+        lines.push(`${indent(level)}${propertyName(key)}: ${descriptor};`);
+        return lines;
+      }
+
+      lines.push(`${indent(level)}${propertyName(key)}: ${descriptor ? `${descriptor} & ` : ''}{`);
+      lines.push(...renderKeyTree(child, level + 1));
+      lines.push(`${indent(level)}};`);
       return lines;
-    }
+    });
 
-    lines.push(`${indent(level)}${propertyName(key)}: ${descriptor ? `${descriptor} & ` : ''}{`);
-    lines.push(...renderKeyTree(child, level + 1));
-    lines.push(`${indent(level)}};`);
-    return lines;
-  });
-};
-
-export const renderTypes = (localeSources: string[], locales: string[], defaultLocale: string): string => {
+export const renderTypes = (
+  localeSources: string[],
+  locales: string[],
+  defaultLocale: string,
+): string => {
   const localeUnion = locales.map(stringifyTsString).join(' | ');
   const treeLines = renderKeyTree(createKeyTree(collectTranslationMetadata(localeSources)), 2);
 
@@ -126,29 +135,32 @@ export const renderTypes = (localeSources: string[], locales: string[], defaultL
     '}',
     '',
     'declare global {',
-    "  declare module '*.i18n.yaml' {",
+    "  module '*.i18n.yaml' {",
     "    import type { Locale } from 'simplei18n';",
-    '    declare const locale: Locale;',
+    '    const locale: Locale;',
     '    export default locale;',
     '  }',
     '}',
     '',
     'export {}',
-    ''
+    '',
   ].join('\n');
 };
 
-export const renderIndex = (locales: string[], defaultLocale: string): string => [
-  "import { defineLocales } from 'simplei18n';",
-  '',
-  'export default defineLocales({',
-  '  locales: {',
-  ...locales.map(locale => `    ${propertyName(locale)}: () => import('./_locales/${locale}.i18n.yaml'),`),
-  '  },',
-  `  defaultLocale: ${stringifyTsString(defaultLocale)},`,
-  '});',
-  ''
-].join('\n');
+export const renderIndex = (locales: string[], defaultLocale: string): string =>
+  [
+    "import { defineLocales } from 'simplei18n';",
+    '',
+    'export default defineLocales({',
+    '  locales: {',
+    ...locales.map(
+      locale => `    ${propertyName(locale)}: () => import('./_locales/${locale}.i18n.yaml'),`,
+    ),
+    '  },',
+    `  defaultLocale: ${stringifyTsString(defaultLocale)},`,
+    '});',
+    '',
+  ].join('\n');
 
 type RenderI18nOptions = {
   removeDangling?: boolean;
@@ -159,7 +171,7 @@ type BlockMapDocument = CST.Document & { value: CST.BlockMap };
 const getBlockMap = (tokens: CST.Token[]): CST.BlockMap =>
   tokens.find(
     (token): token is BlockMapDocument =>
-      token.type === 'document' && token.value?.type === 'block-map'
+      token.type === 'document' && token.value?.type === 'block-map',
   )!.value;
 
 const getCollectionItemKey = (item: CST.CollectionItem) => {
@@ -191,7 +203,7 @@ const getInsertIndex = (blockMap: CST.BlockMap, item: CST.CollectionItem) => {
 export const renderI18n = (
   source: Record<string, string>,
   existing?: string,
-  { removeDangling = true, wrapLength = 80 }: RenderI18nOptions = {}
+  { removeDangling = true, wrapLength = 80 }: RenderI18nOptions = {},
 ) => {
   let hasNewItem = false;
   const existingDoc = typeof existing === 'string' ? parseDocument(existing) : null;

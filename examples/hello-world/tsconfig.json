@@ -4,8 +4,5 @@
     "lib": ["dom"],
     "jsx": "react-jsx"
   },
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.tsx"
-  ]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

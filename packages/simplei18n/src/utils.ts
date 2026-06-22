@@ -1,4 +1,17 @@
-import { Config, I18nAtom, I18nAtomKind, I18nInterpolable, LocalesConfig, RawI18n, TranslateFunction, TranslateFunctionInternal, Translations, UnknownTranslationDescriptor, UnknownTranslateOptions, TranslationMap } from "./types";
+import { I18nAtomKind } from './types';
+import type {
+  Config,
+  I18nAtom,
+  I18nInterpolable,
+  LocalesConfig,
+  RawI18n,
+  TranslateFunction,
+  TranslateFunctionInternal,
+  Translations,
+  UnknownTranslationDescriptor,
+  UnknownTranslateOptions,
+  TranslationMap,
+} from './types';
 
 export const yaml = (strings: TemplateStringsArray, ...values: never[]): RawI18n => {
   if (values.length > 0) {
@@ -12,7 +25,11 @@ export const defineI18n = (_source: RawI18n): void => {};
 export const defineConfig = <TConfig extends Config>(config: TConfig): TConfig => config;
 export const defineLocales = (config: LocalesConfig): LocalesConfig => config;
 
-export const getPluralization = (translations: Translations, key: string, count: number | undefined) => {
+export const getPluralization = (
+  translations: Translations,
+  key: string,
+  count: number | undefined,
+) => {
   if (count === 0 && Object.hasOwn(translations, `${key}.zero`)) {
     return `${key}.zero`;
   }
@@ -28,26 +45,32 @@ export const getPluralization = (translations: Translations, key: string, count:
   return key;
 };
 
-export const createTranslateFunction = <TReturnType, TTagType, TTagReturnType = TReturnType>(props: {
-    createTag: (tag: TTagType, children: TReturnType, index: number) => TTagReturnType,
-    reduce: (args: (null | I18nInterpolable | TTagReturnType)[]) => TReturnType,
-    translations: Translations,
-  }) => (
-    (
-      descriptor: UnknownTranslationDescriptor,
-      opts: UnknownTranslateOptions<TTagType>
-    ): TReturnType => {
-      const key = typeof opts.$count === 'number'
+export const createTranslateFunction = <
+  TReturnType,
+  TTagType,
+  TTagReturnType = TReturnType,
+>(props: {
+  createTag: (tag: TTagType, children: TReturnType, index: number) => TTagReturnType;
+  reduce: (args: (null | I18nInterpolable | TTagReturnType)[]) => TReturnType;
+  translations: Translations;
+}) =>
+  ((
+    descriptor: UnknownTranslationDescriptor,
+    opts: UnknownTranslateOptions<TTagType>,
+  ): TReturnType => {
+    const key =
+      typeof opts.$count === 'number'
         ? getPluralization(props.translations, descriptor.__key!, opts.$count)
         : descriptor.__key!;
 
-      const atoms = props.translations[key];
-      if (!atoms) {
-        console.warn('No translation found for key:', key);
-        return props.reduce([key]);
-      }
+    const translation = props.translations[key];
+    if (!translation) {
+      console.warn('No translation found for key:', key);
+      return props.reduce([key]);
+    }
 
-      const interpolate = (atoms: I18nAtom[]): TReturnType => props.reduce(
+    const interpolate = (atoms: I18nAtom[]): TReturnType =>
+      props.reduce(
         atoms.map((atom, index) => {
           if (typeof atom === 'string') {
             return atom;
@@ -63,16 +86,17 @@ export const createTranslateFunction = <TReturnType, TTagType, TTagReturnType = 
           }
 
           return null;
-        })
+        }),
       );
 
-      return interpolate(atoms);
-  }
-) satisfies TranslateFunctionInternal<TReturnType, TTagType> as TranslateFunction<TReturnType, TTagType>;
+    return interpolate(translation);
+  }) satisfies TranslateFunctionInternal<TReturnType, TTagType> as TranslateFunction<
+    TReturnType,
+    TTagType
+  >;
 
-export const wrapWithProxy = <T extends object>(value: T, prefix = ''): T & TranslationMap => new Proxy(
-  value,
-  {
+export const wrapWithProxy = <T extends object>(value: T, prefix = ''): T & TranslationMap =>
+  new Proxy(value, {
     get(target, key) {
       if (key === '__key') {
         return prefix.slice(0, -1);
@@ -85,5 +109,4 @@ export const wrapWithProxy = <T extends object>(value: T, prefix = ''): T & Tran
       return Reflect.get(target, key) as unknown;
     },
     apply: (...args) => (Reflect.apply as ProxyHandler<T>['apply'])!(...args),
-  },
-) as T & TranslationMap;
+  }) as T & TranslationMap;

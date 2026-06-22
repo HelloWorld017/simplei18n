@@ -5,5 +5,5 @@ export default defineLocales({
     en_US: () => import('./_locales/en_US.i18n.yaml'),
     ko: () => import('./_locales/ko.i18n.yaml'),
   },
-  defaultLocale: "en_US",
+  defaultLocale: 'en_US',
 });

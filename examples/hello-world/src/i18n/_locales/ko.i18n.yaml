@@ -1,4 +1,4 @@
-helloworld.hello: "Hello" #needs-edit
-helloworld.hi: "Hi"
-helloworld.such.wow: "Such {wow}" #needs-edit
-helloworld.such.wow2: "Such <b>{wow}</b>" #needs-edit
+helloworld.hello: 'Hello' #needs-edit
+helloworld.hi: 'Hi'
+helloworld.such.wow: 'Such {wow}' #needs-edit
+helloworld.such.wow2: 'Such <b>{wow}</b>' #needs-edit

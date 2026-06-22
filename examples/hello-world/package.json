@@ -2,10 +2,10 @@
   "name": "simplei18n-example-hello-world",
   "version": "0.0.3",
   "description": "An example for simplei18n",
-  "type": "module",
-  "repository": "https://github.com/HelloWorld017/simplei18n",
-  "author": "Khinenw",
   "license": "MIT",
+  "author": "Khinenw",
+  "repository": "https://github.com/HelloWorld017/simplei18n",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "generate": "simplei18n generate"

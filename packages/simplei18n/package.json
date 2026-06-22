@@ -2,12 +2,15 @@
   "name": "simplei18n",
   "version": "0.0.3",
   "description": "Yet another simple, minimal i18n library",
-  "type": "module",
-  "main": "./dist/src/index.mjs",
-  "types": "./dist/src/index.d.mts",
+  "license": "MIT",
+  "author": "Khinenw",
+  "repository": "https://github.com/HelloWorld017/simplei18n",
   "bin": {
     "simplei18n": "./dist/bin/cli.mjs"
   },
+  "type": "module",
+  "main": "./dist/src/index.mjs",
+  "types": "./dist/src/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.mts",
@@ -22,9 +25,6 @@
       "default": "./dist/src/integrations/vite.mjs"
     }
   },
-  "repository": "https://github.com/HelloWorld017/simplei18n",
-  "author": "Khinenw",
-  "license": "MIT",
   "scripts": {
     "build": "tsdown",
     "watch": "tsdown --watch"
@@ -49,7 +49,11 @@
     "react": ">=19"
   },
   "peerDependenciesMeta": {
-    "@types/react": { "optional": true },
-    "react": { "optional": true }
+    "@types/react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
   }
 }

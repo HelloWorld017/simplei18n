@@ -1,7 +1,16 @@
-/** @jsxImportSource react */
-import { LocaleKey, LocalesConfig, TranslateOptions, TranslationMap, Translations, UnknownTranslationDescriptor, LocaleDefaultKey, TranslateFunctionInternal } from "@/types";
-import {createTranslateFunction, wrapWithProxy} from "@/utils";
+import { createTranslateFunction, wrapWithProxy } from '@/utils';
 import { createContext, createElement, use, useMemo } from 'react';
+/** @jsxImportSource react */
+import type {
+  LocaleKey,
+  LocalesConfig,
+  TranslateOptions,
+  TranslationMap,
+  Translations,
+  UnknownTranslationDescriptor,
+  LocaleDefaultKey,
+  TranslateFunctionInternal,
+} from '@/types';
 import type { ComponentType, JSX, PropsWithChildren, ReactNode } from 'react';
 
 type StringTag = (children: string) => string;
@@ -43,13 +52,13 @@ type I18nProviderProps = PropsWithChildren<{
 
 export const I18nProvider = ({ lang, resource, children }: I18nProviderProps) => {
   const parentCtx = use(I18nContext);
-  const nextI18nContext = useMemo(() => ({
-    lang: lang ?? parentCtx?.lang ?? resource.defaultLocale,
-    resources: [
-      resource,
-      ...(parentCtx?.resources ?? []),
-    ],
-  }), [parentCtx]);
+  const nextI18nContext = useMemo(
+    () => ({
+      lang: lang ?? parentCtx?.lang ?? resource.defaultLocale,
+      resources: [resource, ...(parentCtx?.resources ?? [])],
+    }),
+    [lang, resource, parentCtx],
+  );
 
   return <I18nContext.Provider value={nextI18nContext}>{children}</I18nContext.Provider>;
 };
@@ -63,33 +72,32 @@ export const useI18n = () => {
   const translationsList = ctx?.resources.map(resource => use(resource.load(ctx.lang)));
   const translations = useMemo(
     () => Object.assign({}, ...translationsList) as Translations,
-    [translationsList]
+    [translationsList],
   );
 
   const translateString = useMemo(
-    () => wrapWithProxy(
-      createTranslateFunction<string, StringTag>({
-        createTag: (tag, children) => tag(children),
-        reduce: args => args.map(value => value ?? '').join(''),
-        translations,
-      })
-    ),
-    [translations]
+    () =>
+      wrapWithProxy(
+        createTranslateFunction<string, StringTag>({
+          createTag: (tag, children) => tag(children),
+          reduce: args => args.map(value => value ?? '').join(''),
+          translations,
+        }),
+      ),
+    [translations],
   );
 
   const translateNodes = useMemo(
-    () => wrapWithProxy(
-      createTranslateFunction<ReactNode, NodesTag>({
-        createTag: (tag, children, index) => createElement(
-          tag as ComponentType<PropsWithChildren>,
-          { key: index, children },
-          children
-        ),
-        reduce: args => args,
-        translations,
-      })
-    ),
-    [translations]
+    () =>
+      wrapWithProxy(
+        createTranslateFunction<ReactNode, NodesTag>({
+          createTag: (tag, children, index) =>
+            createElement(tag as ComponentType<PropsWithChildren>, { key: index }, children),
+          reduce: args => args,
+          translations,
+        }),
+      ),
+    [translations],
   );
 
   const i18n = useMemo(
@@ -98,7 +106,7 @@ export const useI18n = () => {
       t: translateNodes,
       ts: translateString,
     }),
-    [ctx.lang, translateNodes, translateString]
+    [ctx.lang, translateNodes, translateString],
   );
 
   return i18n;
@@ -107,7 +115,7 @@ export const useI18n = () => {
 export type GlobalTranslate = {
   <TDescriptor extends UnknownTranslationDescriptor>(
     props: {
-      children: TDescriptor
+      children: TDescriptor;
     } & TranslateOptions<TDescriptor, NodesTag>,
   ): ReactNode;
 } & TranslationMap;
