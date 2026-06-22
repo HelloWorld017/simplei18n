@@ -1,2 +1,4 @@
-helloworld.hello: "Hello" #needs-edit
-helloworld.hi: "Hi"
+helloworld.hi: Hi
+helloworld.hello: Hello
+helloworld.such.wow: Such {wow}
+helloworld.such.wow2: Such <b>{wow}</b>

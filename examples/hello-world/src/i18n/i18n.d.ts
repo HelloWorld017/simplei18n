@@ -1,15 +1,23 @@
 declare module 'simplei18n' {
+  import type { TranslationDescriptor } from 'simplei18n'
+
   interface I18nConfig {
     locales: "en_US" | "ko";
     defaultLocale: "en_US";
   }
 
-  interface TranslationKeyMap {
+  interface TranslationMap {
     helloworld: {
       /** Hello */
-      hello: string;
+      hello: TranslationDescriptor<never, never>;
       /** Hi */
-      hi: string;
+      hi: TranslationDescriptor<never, never>;
+      such: {
+        /** Such {wow} */
+        wow: TranslationDescriptor<"wow", never>;
+        /** Such <b>{wow}</b> */
+        wow2: TranslationDescriptor<"wow", "b">;
+      };
     };
   }
 }

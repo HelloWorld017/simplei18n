@@ -1,8 +1,17 @@
-import { Parser, Document, parseDocument, CST } from 'yaml';
+import { Parser, Document, parse as parseYaml, parseDocument, CST } from 'yaml';
+
+import { parse as parseI18n } from './parser';
+import { I18nAtomKind, Translations, type I18nAtom } from './types';
 
 type KeyTree = {
   children: Record<string, KeyTree>;
+  metadata?: TranslationMetadata;
+};
+
+type TranslationMetadata = {
   value?: string;
+  interpolations: Set<string>;
+  tags: Set<string>;
 };
 
 const indent = (level: number): string => '  '.repeat(level);
@@ -10,18 +19,66 @@ const isValidIdentifier = (value: string): boolean => /^[A-Za-z_$][\w$]*$/.test(
 const propertyName = (value: string): string => isValidIdentifier(value) ? value : stringifyTsString(value);
 const escapeComment = (value: string): string => value.replace(/\*\//g, '*\\/').replace(/[\r\n]+/g, ' ');
 const stringifyTsString = (value: string): string => JSON.stringify(value);
+const normalizePluralizationKey = (key: string) => key.replace(/\.(?:plural|singular|zero)$/, '');
 
-const createKeyTree = (source: Record<string, string>): KeyTree => {
+const collectAtomMetadata = (atoms: I18nAtom[], metadata: TranslationMetadata): void => {
+  atoms.forEach(atom => {
+    if (atom[0] === I18nAtomKind.Interpolation) {
+      metadata.interpolations.add(atom[1]);
+      return;
+    }
+
+    if (atom[0] === I18nAtomKind.Tag) {
+      metadata.tags.add(atom[1]);
+      collectAtomMetadata(atom[2], metadata);
+    }
+  });
+};
+
+const collectTranslationMetadata = (localeSources: string[]): Record<string, TranslationMetadata> => {
+  const metadataByKey: Record<string, TranslationMetadata> = {};
+
+  for (const localeSource of localeSources) {
+    const rawValues = (parseYaml(localeSource) ?? {}) as Record<string, string>;
+    const translations = parseI18n(localeSource);
+
+    for (const [key, value] of Object.entries(translations)) {
+      const metadata = metadataByKey[normalizePluralizationKey(key)] ??= {
+        interpolations: new Set(),
+        tags: new Set(),
+      };
+
+      const rawValue = rawValues[key];
+      if (metadata.value === undefined && typeof rawValue === 'string') {
+        metadata.value = rawValue;
+      }
+
+      collectAtomMetadata(value, metadata);
+    }
+  }
+
+  return metadataByKey;
+};
+
+const renderStringUnion = (values: Set<string>): string => {
+  const sorted = [...values].sort();
+  return sorted.length > 0 ? sorted.map(stringifyTsString).join(' | ') : 'never';
+};
+
+const renderDescriptor = (metadata: TranslationMetadata): string =>
+  `TranslationDescriptor<${renderStringUnion(metadata.interpolations)}, ${renderStringUnion(metadata.tags)}>`;
+
+const createKeyTree = (source: Record<string, TranslationMetadata>): KeyTree => {
   const root: KeyTree = { children: {} };
 
-  for (const [key, value] of Object.entries(source)) {
+  for (const [key, metadata] of Object.entries(source)) {
     const parts = key.split('.').filter(Boolean);
     let node = root;
     for (const part of parts) {
       node.children[part] = node.children[part] ?? { children: {} };
       node = node.children[part];
     }
-    node.value = value;
+    node.metadata = metadata;
   }
 
   return root;
@@ -31,36 +88,39 @@ const renderKeyTree = (tree: KeyTree, level: number): string[] => {
   return Object.keys(tree.children).sort().flatMap(key => {
     const child = tree.children[key];
     const lines: string[] = [];
+    const childKeys = Object.keys(child.children);
+    const descriptor = child.metadata ? renderDescriptor(child.metadata) : null;
 
-    if (child.value !== undefined && Object.keys(child.children).length === 0) {
-      lines.push(`${indent(level)}/** ${escapeComment(child.value)} */`);
-      lines.push(`${indent(level)}${propertyName(key)}: string;`);
+    if (descriptor && child.metadata?.value !== undefined) {
+      lines.push(`${indent(level)}/** ${escapeComment(child.metadata.value)} */`);
+    }
+
+    if (descriptor && childKeys.length === 0) {
+      lines.push(`${indent(level)}${propertyName(key)}: ${descriptor};`);
       return lines;
     }
 
-    lines.push(`${indent(level)}${propertyName(key)}: {`);
+    lines.push(`${indent(level)}${propertyName(key)}: ${descriptor ? `${descriptor} & ` : ''}{`);
     lines.push(...renderKeyTree(child, level + 1));
-    if (child.value !== undefined) {
-      lines.push(`${indent(level + 1)}/** ${escapeComment(child.value)} */`);
-      lines.push(`${indent(level + 1)}_value: string;`);
-    }
     lines.push(`${indent(level)}};`);
     return lines;
   });
 };
 
-export const renderTypes = (source: Record<string, string>, locales: string[], defaultLocale: string): string => {
+export const renderTypes = (localeSources: string[], locales: string[], defaultLocale: string): string => {
   const localeUnion = locales.map(stringifyTsString).join(' | ');
-  const treeLines = renderKeyTree(createKeyTree(source), 2);
+  const treeLines = renderKeyTree(createKeyTree(collectTranslationMetadata(localeSources)), 2);
 
   return [
     "declare module 'simplei18n' {",
+    "  import type { TranslationDescriptor } from 'simplei18n'",
+    '',
     '  interface I18nConfig {',
     `    locales: ${localeUnion};`,
     `    defaultLocale: ${stringifyTsString(defaultLocale)};`,
     '  }',
     '',
-    '  interface TranslationKeyMap {',
+    '  interface TranslationMap {',
     ...treeLines,
     '  }',
     '}',
@@ -83,7 +143,7 @@ export const renderIndex = (locales: string[], defaultLocale: string): string =>
   '',
   'export default defineLocales({',
   '  locales: {',
-  ...locales.map(locale => `    ${propertyName(locale)}: import('./_locales/${locale}.i18n.yaml'),`),
+  ...locales.map(locale => `    ${propertyName(locale)}: () => import('./_locales/${locale}.i18n.yaml'),`),
   '  },',
   `  defaultLocale: ${stringifyTsString(defaultLocale)},`,
   '});',

@@ -7,6 +7,7 @@ import packageInfo from '../package.json';
 import {loadConfig, NormalizedConfig, TargetConfig} from './config';
 import {extract} from './extractor';
 import {renderI18n, renderIndex, renderTypes} from './renderer';
+import {stringify} from 'yaml';
 
 type CommonFlags = {
   config: string,
@@ -33,7 +34,15 @@ export const generateTarget = async (
   const localeDir = path.join(outDir, '_locales');
   await fs.mkdir(localeDir, { recursive: true });
 
-  for (const locale of config.locales) {
+  const localeSources: string[] = [];
+  const locales = config.locales.slice().sort().filter(locale => locale !== config.defaultLocale);
+
+  const defaultLocalePath = path.join(localeDir, `${config.defaultLocale}.i18n.yaml`)
+  const defaultLocaleSource = stringify(source);
+  await fs.writeFile(defaultLocalePath, defaultLocaleSource);
+  localeSources.push(defaultLocaleSource);
+
+  for (const locale of locales) {
     const localePath = path.join(localeDir, `${locale}.i18n.yaml`);
     const existing = await fs.readFile(localePath, 'utf8').catch(() => undefined);
     const merged = renderI18n(source, existing, {
@@ -42,9 +51,10 @@ export const generateTarget = async (
     });
 
     await fs.writeFile(localePath, merged);
+    localeSources.push(merged);
   }
 
-  await fs.writeFile(path.join(outDir, 'i18n.d.ts'), renderTypes(source, config.locales, config.defaultLocale));
+  await fs.writeFile(path.join(outDir, 'i18n.d.ts'), renderTypes(localeSources, config.locales, config.defaultLocale));
   await fs.writeFile(path.join(outDir, 'index.ts'), renderIndex(config.locales, config.defaultLocale));
 
   process.stdout.write(`Generated ${path.relative(workDir, outDir)}\n`);

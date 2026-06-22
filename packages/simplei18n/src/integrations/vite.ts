@@ -10,12 +10,11 @@ const load = (text: string): string => {
 
 const viteSimpleI18n = () => ({
   name: '@simplei18n/vite-plugin',
-
   transform(src: string, id: string) {
-    if (!id.endsWith('.i18n.yml')) {
+    if (!/.i18n.ya?ml$/.test(id)) {
       return;
     }
-    
+
     return load(src);
   }
 });

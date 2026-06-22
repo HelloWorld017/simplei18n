@@ -3,10 +3,24 @@
   "version": "0.0.3",
   "description": "Yet another simple, minimal i18n library",
   "type": "module",
-  "main": "dist/src/index.mjs",
-  "types": "dist/src/index.d.mts",
+  "main": "./dist/src/index.mjs",
+  "types": "./dist/src/index.d.mts",
   "bin": {
-    "simplei18n": "dist/bin/cli.mjs"
+    "simplei18n": "./dist/bin/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.mts",
+      "default": "./dist/src/index.mjs"
+    },
+    "./react": {
+      "types": "./dist/src/integrations/react.d.mts",
+      "default": "./dist/src/integrations/react.mjs"
+    },
+    "./vite": {
+      "types": "./dist/src/integrations/vite.d.mts",
+      "default": "./dist/src/integrations/vite.mjs"
+    }
   },
   "repository": "https://github.com/HelloWorld017/simplei18n",
   "author": "Khinenw",
@@ -27,6 +41,15 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^16.18.126"
+    "@types/node": "^16.18.126",
+    "@types/react": "^19.2.17"
+  },
+  "peerDependencies": {
+    "@types/react": ">=19",
+    "react": ">=19"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": { "optional": true },
+    "react": { "optional": true }
   }
 }

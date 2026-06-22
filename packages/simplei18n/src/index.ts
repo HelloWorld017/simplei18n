@@ -1,12 +1,12 @@
 export * from './utils';
 export type {
   I18nConfig,
-  Locale,
-  LocaleKeys,
+  LocaleKey,
   LocaleModule,
   LocalesConfig,
   RawI18n,
   I18nConfig as SimpleI18nConfig,
-  TranslationKeyMap,
-  TranslationKeys,
+  Translations,
+  TranslationDescriptor,
+  TranslationMap,
 } from './types';
