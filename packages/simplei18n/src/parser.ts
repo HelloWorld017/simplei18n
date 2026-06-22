@@ -17,6 +17,7 @@ import {
 } from 'parjs/combinators';
 
 import type { Parjser } from 'parjs';
+import {I18nAtom, I18nAtomInterpolation, I18nAtomKind, I18nAtomTag} from './types';
 
 const stringifyConsecutive = <T>() =>
   map<T[], (T | string)[]>(result =>
@@ -33,18 +34,12 @@ const stringifyConsecutive = <T>() =>
     }, [])
   );
 
-const atom = later<Atom>();
+const atom = later<I18nAtom>();
 
-export const Kind  = {
-  Interpolation: 1,
-  Tag: 2,
-} as const;
-
-type Interpolation = [typeof Kind.Interpolation, string];
-const interpolation: Parjser<Interpolation> =
+const interpolation: Parjser<I18nAtomInterpolation> =
   anyChar().pipe(
     manyBetween(string('{'), string('}')),
-    map(result => ([Kind.Interpolation, result.join('')]))
+    map(result => ([I18nAtomKind.Interpolation, result.join('')]))
   );
 
 const escape: Parjser<string> =
@@ -62,8 +57,7 @@ const tagName: Parjser<string> =
     or(digit())
   );
 
-type Tag = [typeof Kind.Tag, string, Atom[]];
-const tag: Parjser<Tag> =
+const tag: Parjser<I18nAtomTag> =
   string('<').pipe(
     qthen(tagName.pipe(
       many(),
@@ -76,7 +70,7 @@ const tag: Parjser<Tag> =
   ).pipe(
     thenPick(({ tagName, closes }) => {
       if (closes) {
-        return result([Kind.Tag, tagName, []]);
+        return result([I18nAtomKind.Tag, tagName, []]);
       }
 
       const tagClose = string(tagName)
@@ -86,13 +80,12 @@ const tag: Parjser<Tag> =
 
       return atom.pipe(
         manyTill(tagClose),
-        stringifyConsecutive<Atom>(),
-        map(result => [Kind.Tag, tagName, result])
+        stringifyConsecutive<I18nAtom>(),
+        map(result => [I18nAtomKind.Tag, tagName, result])
       );
     })
   );
 
-type Atom = string | Interpolation | Tag;
 atom.init(
   escape.pipe(
     or(tag),
@@ -101,32 +94,24 @@ atom.init(
   )
 );
 
-const program: Parjser<Atom[]> =
+const program: Parjser<I18nAtom[]> =
   atom.pipe(
     many(),
-    stringifyConsecutive<Atom>()
+    stringifyConsecutive<I18nAtom>()
   );
 
-type I18n = { [ Key in string ]: string | I18n };
-type ParsedI18n = { [ Key in string ]: Atom[] | ParsedI18n };
-
-const parseAllI18n = (i18nData: I18n): ParsedI18n =>
-  Object.keys(i18nData).reduce<ParsedI18n>((result, key) => {
-    const value = i18nData[key];
-    if (typeof value === 'string') {
-      const parseResult = program.parse(value);
-      if (parseResult.kind === 'OK') {
-        return { ...result, [ key ]: parseResult.value };
-      }
-
-      throw parseResult;
+const parseAllI18n = <TKey extends string>(i18nData: Record<TKey, string>): Record<TKey, I18nAtom[]> =>
+  Object.fromEntries(Object.entries(i18nData).map(([key, value]) => {
+    const parseResult = program.parse(value as string);
+    if (parseResult.kind === 'OK') {
+      return [ key as TKey, parseResult.value] as const;
     }
 
-    return { ...result, [ key ]: parseAllI18n(value) };
-  }, {});
+    throw parseResult;
+  }, {})) as Record<TKey, I18nAtom[]>;
 
-export const parse = (text: string): ParsedI18n => {
-  const i18nData = yaml.load(text) as I18n;
+export const parse = <TKey extends string>(text: string): Record<TKey, I18nAtom[]>  => {
+  const i18nData = yaml.load(text) as Record<TKey, string>;
   return parseAllI18n(i18nData);
 };
 
@@ -134,13 +119,3 @@ export const parseScope = (text: string): string | undefined => {
   const match = text.match(/^\s*#\s*scope:\s*([^\r\n#]+?)\s*$/m);
   return match?.[1]?.trim() || undefined;
 };
-
-export const load = (text: string): string => {
-  const i18n = parse(text);
-  return (
-    `const i18n = ${JSON.stringify(i18n)};` +
-    `export default i18n;`
-  );
-}
-
-export type { I18n, Atom as I18nAtom, Interpolation as I18nAtomInterpolation, Tag as I18nAtomTag };

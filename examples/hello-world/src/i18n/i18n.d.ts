@@ -1,11 +1,13 @@
 declare module 'simplei18n' {
-  interface TranslationConfig {
+  interface I18nConfig {
     locales: "en_US" | "ko";
     defaultLocale: "en_US";
   }
 
-  interface TranslationKey {
+  interface TranslationKeyMap {
     helloworld: {
+      /** Hello */
+      hello: string;
       /** Hi */
       hi: string;
     };

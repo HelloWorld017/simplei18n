@@ -1,4 +1,12 @@
-import { load } from '@simplei18n/parser';
+import {parse} from '../parser';
+
+const load = (text: string): string => {
+  const i18n = parse(text);
+  return (
+    `const i18n = ${JSON.stringify(i18n)};` +
+    `export default i18n;`
+  );
+}
 
 const viteSimpleI18n = () => ({
   name: '@simplei18n/vite-plugin',

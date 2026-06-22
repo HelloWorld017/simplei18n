@@ -1,1 +1,2 @@
-"helloworld.hi": "Hi"
+helloworld.hello: "Hello" #needs-edit
+helloworld.hi: "Hi"
