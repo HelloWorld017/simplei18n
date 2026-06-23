@@ -1,6 +1,6 @@
 home.title: simplei18n react-server
 home.lead: This text is rendered on the <strong>server</strong> with {library}.
-home.currentLocale: "Current locale: {lang}"
+home.currentLocale: 'Current locale: {lang}'
 home.clientTitle: Client component
 home.clientCount: Client clicks
 home.clientIncrement: Increment on client

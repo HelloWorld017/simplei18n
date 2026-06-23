@@ -4,8 +4,8 @@ import { t } from 'simplei18n/react';
 defineI18n(yaml`
   # scope: helloworld
   hi: 'Hi'
-  hello: 'Hello'
-  such.wow: 'Such {wow}'
+  hello: 'Hello updated'
+  such.wow: 'Such updated {wow}'
   such.wow2: 'Such <b>{wow}</b>'
 `);
 

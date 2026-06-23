@@ -1,4 +1,4 @@
 helloworld.hi: Hi
-helloworld.hello: Hello
-helloworld.such.wow: Such {wow}
+helloworld.hello: Hello updated
+helloworld.such.wow: Such updated {wow}
 helloworld.such.wow2: Such <b>{wow}</b>

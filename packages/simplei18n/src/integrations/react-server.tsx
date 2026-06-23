@@ -1,5 +1,5 @@
-import { cache, createElement } from 'react';
 import { createI18nResource, createTranslateFunction, wrapWithProxy } from '@/utils';
+import { cache, createElement } from 'react';
 import type {
   LocaleKey,
   MergedLocalesConfig,

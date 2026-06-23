@@ -2,13 +2,25 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import fg from 'fast-glob';
 import { parseSync } from 'oxc-parser';
-import { parse } from 'yaml';
 import { parseScope } from './parser';
+import { parseYaml } from './yaml';
 import type { TargetConfig } from './config';
 
 type SourceEntry = {
   key: string;
   value: string;
+};
+
+type ExtractCacheEntry = {
+  mtimeMs: number;
+  size: number;
+  entries: SourceEntry[];
+};
+
+export type ExtractCache = Map<string, ExtractCacheEntry>;
+
+type ExtractOptions = {
+  cache?: ExtractCache;
 };
 
 const JS_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.mjs', '.mts', '.cjs', '.cts']);
@@ -42,7 +54,7 @@ const flattenYamlValue = (value: unknown, prefix = ''): SourceEntry[] => {
 
 const parseYamlSource = (source: string, filePath: string, targetScope?: string): SourceEntry[] => {
   const sourceScope = parseScope(source);
-  const body = parse(source) ?? {};
+  const body = parseYaml(source) ?? {};
   const entries = flattenYamlValue(body);
 
   return entries
@@ -129,27 +141,49 @@ const collectDefineI18nSources = (source: string, filePath: string): string[] =>
   return sources;
 };
 
-const collectFileEntries = async (
+export const extractFile = async (
   filePath: string,
   targetScope?: string,
+  cache?: ExtractCache,
 ): Promise<SourceEntry[]> => {
+  const cacheKey = `${targetScope ?? ''}\0${filePath}`;
+  const stat = cache ? await fs.stat(filePath) : null;
+  const cached = cache?.get(cacheKey);
+  if (cached && stat && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+    return cached.entries;
+  }
+
   const extension = path.extname(filePath);
   const source = await fs.readFile(filePath, 'utf8');
+  let entries: SourceEntry[];
 
   if (YAML_EXTENSIONS.has(extension) && /\.i18n\.ya?ml$/.test(filePath)) {
-    return parseYamlSource(source, filePath, targetScope);
-  }
-
-  if (JS_EXTENSIONS.has(extension)) {
-    return collectDefineI18nSources(source, filePath).flatMap(yamlSource =>
+    entries = parseYamlSource(source, filePath, targetScope);
+  } else if (JS_EXTENSIONS.has(extension)) {
+    entries = collectDefineI18nSources(source, filePath).flatMap(yamlSource =>
       parseYamlSource(yamlSource, filePath, targetScope),
     );
+  } else {
+    entries = [];
   }
 
-  return [];
+  if (cache && stat) {
+    cache.set(cacheKey, { mtimeMs: stat.mtimeMs, size: stat.size, entries });
+  }
+
+  return entries;
 };
 
-export const extract = async (cwd: string, target: TargetConfig) => {
+export const createExtractCache = (): ExtractCache => new Map();
+export const invalidateExtractCache = (cache: ExtractCache, filePath: string) => {
+  for (const key of cache.keys()) {
+    if (key.endsWith(`\0${filePath}`)) {
+      cache.delete(key);
+    }
+  }
+};
+
+export const extract = async (cwd: string, target: TargetConfig, options: ExtractOptions = {}) => {
   const files = await fg(target.include, {
     cwd,
     absolute: true,
@@ -158,7 +192,7 @@ export const extract = async (cwd: string, target: TargetConfig) => {
   });
 
   const entries = (
-    await Promise.all(files.map(file => collectFileEntries(file, target.scope)))
+    await Promise.all(files.map(file => extractFile(file, target.scope, options.cache)))
   ).flat();
   return Object.fromEntries(entries.map(entry => [entry.key, entry.value] as const));
 };

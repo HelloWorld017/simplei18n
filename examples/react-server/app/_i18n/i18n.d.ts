@@ -1,9 +1,9 @@
 declare module 'simplei18n' {
-  import type { TranslationDescriptor } from 'simplei18n'
+  import type { TranslationDescriptor } from 'simplei18n';
 
   interface I18nConfig {
-    locales: "en_US" | "ko";
-    defaultLocale: "en_US";
+    locales: 'en_US' | 'ko';
+    defaultLocale: 'en_US';
   }
 
   interface TranslationMap {
@@ -15,9 +15,9 @@ declare module 'simplei18n' {
       /** Client component */
       clientTitle: TranslationDescriptor<never, never>;
       /** Current locale: {lang} */
-      currentLocale: TranslationDescriptor<"lang", never>;
+      currentLocale: TranslationDescriptor<'lang', never>;
       /** This text is rendered on the <strong>server</strong> with {library}. */
-      lead: TranslationDescriptor<"library", "strong">;
+      lead: TranslationDescriptor<'library', 'strong'>;
       /** English */
       switchEnglish: TranslationDescriptor<never, never>;
       /** Korean */
@@ -36,4 +36,4 @@ declare global {
   }
 }
 
-export {}
+export {};

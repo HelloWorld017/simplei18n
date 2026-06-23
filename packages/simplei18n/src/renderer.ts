@@ -1,9 +1,11 @@
 import path from 'node:path';
-import { Parser, Document, parse as parseYaml, parseDocument, CST } from 'yaml';
+import { Parser, Document, isScalar, CST } from 'yaml';
 import { parse as parseI18n } from './parser';
 import { I18nAtomKind } from './types';
+import { TODO_TAG, parseYaml, parseYamlDocument } from './yaml';
 import type { TargetConfig } from './config';
 import type { I18nAtom } from './types';
+import type { Scalar } from 'yaml';
 
 type KeyTree = {
   children: Record<string, KeyTree>;
@@ -274,36 +276,50 @@ const getInsertIndex = (blockMap: CST.BlockMap, item: CST.CollectionItem) => {
   return blockMap.items.length;
 };
 
+const getNodeType = (value: string, wrapLength?: number | null): Scalar.Type => {
+  if (value.includes('\n')) {
+    return 'BLOCK_LITERAL';
+  }
+
+  if (wrapLength && value.length > wrapLength) {
+    return 'BLOCK_FOLDED';
+  }
+
+  return 'QUOTE_DOUBLE';
+};
+
+const createTodoNode = (doc: Document, value: string, wrapLength?: number | null): Scalar => {
+  const node = doc.createNode(value) as Scalar;
+  node.type = getNodeType(value, wrapLength);
+  node.tag = TODO_TAG;
+  return node;
+};
+
+const isTodoNode = (node: unknown): node is Scalar => {
+  return isScalar(node) && node.tag === TODO_TAG;
+};
+
 export const renderI18n = (
   source: Record<string, string>,
   existing?: string,
   { removeDangling = true, wrapLength = 80 }: RenderI18nOptions = {},
 ) => {
   let hasNewItem = false;
-  const existingDoc = typeof existing === 'string' ? parseDocument(existing) : null;
+  const existingDoc = typeof existing === 'string' ? parseYamlDocument(existing) : null;
   const newDoc = new Document({});
+
   for (const [key, value] of Object.entries(source)) {
-    if (existingDoc?.has(key)) {
+    const existingNode = existingDoc?.get(key, true);
+
+    if (existingNode) {
+      if (isTodoNode(existingNode) && existingNode.value !== value) {
+        newDoc.set(key, createTodoNode(newDoc, value, wrapLength));
+        hasNewItem = true;
+      }
       continue;
     }
 
-    const nodeType = (() => {
-      if (value.includes('\n')) {
-        return 'BLOCK_LITERAL';
-      }
-
-      if (wrapLength && value.length > wrapLength) {
-        return 'BLOCK_FOLDED';
-      }
-
-      return 'QUOTE_DOUBLE';
-    })();
-
-    const node = newDoc.createNode(value);
-    node.type = nodeType;
-    node.comment = 'needs-edit';
-
-    newDoc.set(key, node);
+    newDoc.set(key, createTodoNode(newDoc, value, wrapLength));
     hasNewItem = true;
   }
 
@@ -319,6 +335,17 @@ export const renderI18n = (
     const newTokens = Array.from(new Parser().parse(newDocStr));
     const newBlockMap = getBlockMap(newTokens);
     newBlockMap.items.forEach(item => {
+      const key = getCollectionItemKey(item);
+      const existingIndex = existingBlockMap.items.findIndex(existingItem => {
+        const existingKey = getCollectionItemKey(existingItem);
+        return key && existingKey === key;
+      });
+
+      if (existingIndex >= 0) {
+        existingBlockMap.items.splice(existingIndex, 1, item);
+        return;
+      }
+
       const insertPosition = getInsertIndex(existingBlockMap, item);
       existingBlockMap.items.splice(insertPosition, 0, item);
     });

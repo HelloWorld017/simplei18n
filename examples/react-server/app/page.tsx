@@ -1,8 +1,8 @@
 import { defineI18n, LocaleKey, yaml } from 'simplei18n';
 import { I18nProvider, registerI18n, t, useI18n } from 'simplei18n/react';
-import { ClientCounter } from './client-counter';
 import mergedLocales from './_i18n/merged';
-import {AppI18nProvider} from './i18n-provider';
+import { ClientCounter } from './client-counter';
+import { AppI18nProvider } from './i18n-provider';
 
 defineI18n(yaml`
   # scope: home

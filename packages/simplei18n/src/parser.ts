@@ -13,8 +13,8 @@ import {
   thenPick,
   thenq,
 } from 'parjs/combinators';
-import { parse as parseYaml } from 'yaml';
 import { I18nAtomKind } from './types';
+import { parseYaml } from './yaml';
 import type { I18nAtom, I18nAtomInterpolation, I18nAtomTag } from './types';
 import type { Parjser } from 'parjs';
 

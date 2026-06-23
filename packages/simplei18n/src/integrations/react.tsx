@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-"use client";
+'use client';
 
 import { createI18nResource, createTranslateFunction, isPromise, wrapWithProxy } from '@/utils';
 import { createContext, createElement, use, useMemo } from 'react';

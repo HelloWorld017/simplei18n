@@ -1,5 +1,5 @@
 import { access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import * as v from 'valibot';
 
@@ -82,9 +82,12 @@ const findConfig = async (cwd: string): Promise<string> => {
   throw new Error(`Cannot find simplei18n config. Expected one of: ${CONFIG_FILES.join(', ')}`);
 };
 
+export const resolveConfigPath = async (cwd: string, configFile?: string): Promise<string> =>
+  configFile ? resolve(cwd, configFile) : findConfig(cwd);
+
 export const loadConfig = async (cwd: string, configFile?: string): Promise<NormalizedConfig> => {
-  const configPath = configFile ?? (await findConfig(cwd));
-  const jiti = createJiti(configPath, { interopDefault: true });
+  const configPath = await resolveConfigPath(cwd, configFile);
+  const jiti = createJiti(configPath, { interopDefault: true, moduleCache: false });
   const loaded = await jiti.import(configPath, { default: true });
 
   const result = v.safeParse(ConfigSchema, loaded);

@@ -2,13 +2,16 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import chokidar from 'chokidar';
 import sade from 'sade';
 import { stringify } from 'yaml';
 import packageInfo from '../package.json';
-import { loadConfig } from './config';
-import { extract } from './extractor';
+import { loadConfig, resolveConfigPath } from './config';
+import { createExtractCache, extract, invalidateExtractCache } from './extractor';
 import { renderI18n, renderIndex, renderMergedIndex, renderTypes } from './renderer';
 import type { NormalizedConfig, TargetConfig } from './config';
+import type { ExtractCache } from './extractor';
+import type { FSWatcher } from 'chokidar';
 
 type CommonFlags = {
   config: string;
@@ -16,10 +19,12 @@ type CommonFlags = {
 
 type GenerateOptions = {
   removeDangling?: boolean;
+  extractCache?: ExtractCache;
 };
 
 type GenerateFlags = CommonFlags & {
   'remove-dangling': boolean;
+  'watch': boolean;
 };
 
 export const generateTarget = async (
@@ -28,7 +33,7 @@ export const generateTarget = async (
   config: NormalizedConfig,
   options: GenerateOptions,
 ) => {
-  const source = await extract(workDir, target);
+  const source = await extract(workDir, target, { cache: options.extractCache });
   const outDir = path.resolve(workDir, target.outDir);
   const localeDir = path.join(outDir, '_locales');
   await fs.mkdir(localeDir, { recursive: true });
@@ -88,6 +93,67 @@ export const generate = async (
   }
 };
 
+const formatError = (error: unknown) =>
+  error instanceof Error ? (error.stack ?? error.message) : String(error);
+
+const watchGenerate = async (
+  workDir: string,
+  config: NormalizedConfig,
+  options: GenerateOptions,
+): Promise<void> => {
+  const extractCache = createExtractCache();
+  let watcher: FSWatcher | null = null;
+
+  const resetWatcher = async () => {
+    await watcher?.close();
+    const watchTargets = config.target.flatMap(target =>
+      target.include.map(include => path.resolve(workDir, include)),
+    );
+
+    const ignoreTargets = config.target.map(target => path.resolve(workDir, target.outDir, '**'));
+
+    watcher = chokidar.watch(watchTargets, { ignoreInitial: true, ignored: ignoreTargets });
+    watcher.on('all', (_eventName, changedPath) => {
+      const absolutePath = path.isAbsolute(changedPath)
+        ? changedPath
+        : path.resolve(workDir, changedPath);
+
+      invalidateExtractCache(extractCache, absolutePath);
+      scheduleGenerate();
+    });
+
+    watcher.on('error', error => {
+      process.stderr.write(`${formatError(error)}\n`);
+    });
+  };
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let generatePromise: Promise<void> = Promise.resolve();
+  const scheduleGenerate = () => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    timer = setTimeout(() => {
+      generatePromise = generatePromise
+        .then(() => generate(workDir, config, { ...options, extractCache }))
+        .catch(error => void process.stderr.write(`${formatError(error)}\n`));
+    });
+  };
+
+  const stop = async () => {
+    await watcher?.close();
+    process.exit(0);
+  };
+
+  process.once('SIGINT', () => void stop());
+  process.once('SIGTERM', () => void stop());
+
+  await resetWatcher();
+  scheduleGenerate();
+  process.stdout.write('Watching for simplei18n changes\n');
+};
+
 export const cli = async (cwd?: string, argv?: string[]) => {
   const workDir = cwd ?? process.cwd();
   const args = argv ?? process.argv;
@@ -104,11 +170,14 @@ export const cli = async (cwd?: string, argv?: string[]) => {
       'Removes dangling translation keys in existing locale files.',
       false,
     )
+    .option('-w, --watch', 'Watch source files and regenerate on change.', false)
     .action(async (opts: GenerateFlags) => {
-      const config = await loadConfig(workDir, opts.config);
-      await generate(workDir, config, {
+      const options = {
         removeDangling: opts['remove-dangling'],
-      });
+      };
+
+      const config = await loadConfig(workDir, opts.config);
+      await (opts.watch ? watchGenerate : generate)(workDir, config, options);
     });
 
   prog.parse(args);

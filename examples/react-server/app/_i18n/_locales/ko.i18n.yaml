@@ -1,8 +1,8 @@
-home.title: "simplei18n react-server"
-home.lead: "이 텍스트는 <strong>서버</strong>에서 {library} 로 렌더되고 있습니다."
-home.currentLocale: "현재 언어: {lang}"
-home.clientTitle: "클라이언트 컴포넌트"
-home.clientCount: "카운트"
-home.clientIncrement: "카운트 늘리기"
-home.switchEnglish: "English"
-home.switchKorean: "한국어"
+home.title: 'simplei18n react-server'
+home.lead: '이 텍스트는 <strong>서버</strong>에서 {library} 로 렌더되고 있습니다.'
+home.currentLocale: '현재 언어: {lang}'
+home.clientTitle: '클라이언트 컴포넌트'
+home.clientCount: '카운트'
+home.clientIncrement: '카운트 늘리기'
+home.switchEnglish: 'English'
+home.switchKorean: '한국어'
