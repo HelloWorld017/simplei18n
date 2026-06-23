@@ -1,12 +1,15 @@
 {
   "name": "simplei18n",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Yet another simple, minimal i18n library",
   "license": "MIT",
   "author": "Khinenw",
-  "repository": "https://github.com/HelloWorld017/simplei18n",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HelloWorld017/simplei18n.git"
+  },
   "bin": {
-    "simplei18n": "./dist/cli.mjs"
+    "simplei18n": "dist/cli.mjs"
   },
   "type": "module",
   "main": "./dist/index.mjs",
