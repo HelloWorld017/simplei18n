@@ -1,0 +1,30 @@
+{
+  "name": "simplei18n-example-react-server",
+  "version": "0.0.3",
+  "description": "A react-server example for simplei18n using vinext",
+  "license": "MIT",
+  "author": "Khinenw",
+  "repository": "https://github.com/HelloWorld017/simplei18n",
+  "type": "module",
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "vinext start",
+    "generate": "simplei18n generate",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "simplei18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-rsc": "^0.5.27",
+    "react-server-dom-webpack": "^19.2.7",
+    "vinext": "0.1.3",
+    "vite": "^8.0.16"
+  }
+}

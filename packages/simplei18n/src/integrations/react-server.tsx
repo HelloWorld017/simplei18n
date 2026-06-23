@@ -1,5 +1,4 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
-import { createElement, Fragment } from 'react';
+import { cache, createElement } from 'react';
 import { createI18nResource, createTranslateFunction, wrapWithProxy } from '@/utils';
 import type {
   LocaleKey,
@@ -20,10 +19,10 @@ type I18nStore = {
   translations: Translations;
 };
 
-const i18nStorage = new AsyncLocalStorage<I18nStore>();
+let i18nStorage: (() => { current: I18nStore | null }) | null = null;
 
 const getI18nStore = () => {
-  const store = i18nStorage.getStore();
+  const store = i18nStorage?.().current;
   if (!store) {
     throw new Error('No i18n registered. Call registerI18n first.');
   }
@@ -38,7 +37,12 @@ export const registerI18n = (mergedLocales: MergedLocalesConfig, lang: string | 
     throw new Error(`No translations found for locale: ${nextLang}`);
   }
 
-  i18nStorage.enterWith({ lang: nextLang, translations });
+  if (!i18nStorage) {
+    i18nStorage = cache(() => ({ current: null }));
+  }
+
+  const store = i18nStorage();
+  store.current = { lang: nextLang, translations };
 };
 
 export const useI18n = () => {
@@ -82,15 +86,10 @@ type GlobalTranslateInternalProps = {
 };
 
 const Translate = (({ children, $count, $tags, ...opts }: GlobalTranslateInternalProps) => {
-  const { translations } = getI18nStore();
-  const translate = createTranslateFunction<ReactNode, NodesTag>({
-    createTag: (tag, children, index) =>
-      createElement(tag as ComponentType<PropsWithChildren>, { key: index }, children),
-    reduce: args => args,
-    translations,
-  }) as TranslateFunctionInternal<ReactNode, NodesTag>;
+  const { t } = useI18n();
+  const translate = t as TranslateFunctionInternal<ReactNode, NodesTag>;
   const nodes = translate(children, { $count, $tags, ...opts });
-  return createElement(Fragment, null, nodes);
+  return <>{nodes}</>;
 }) as GlobalTranslate;
 
 export const t = wrapWithProxy({ _: Translate });

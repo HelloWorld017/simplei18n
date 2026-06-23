@@ -18,7 +18,7 @@ import type { ComponentType, JSX, PropsWithChildren, ReactNode } from 'react';
 type StringTag = (children: string) => string;
 type NodesTag = ComponentType<PropsWithChildren> | keyof JSX.IntrinsicElements;
 
-export const registerI18n = (_mergedLocales: MergedLocalesConfig, _lang: string | null) => {
+export const registerI18n = (_mergedLocales: MergedLocalesConfig, _lang: string | null): void => {
   throw new Error('registerI18n is only available in react-server environments.');
 };
 

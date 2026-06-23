@@ -76,7 +76,7 @@ export const createTranslateFunction = <
 }) =>
   ((
     descriptor: UnknownTranslationDescriptor,
-    opts: UnknownTranslateOptions<TTagType>,
+    opts: UnknownTranslateOptions<TTagType> = {},
   ): TReturnType => {
     const key =
       typeof opts.$count === 'number'
