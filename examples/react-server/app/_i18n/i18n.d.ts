@@ -1,5 +1,5 @@
-declare module 'simplei18n' {
-  import type { TranslationDescriptor } from 'simplei18n';
+declare module '@simplei18n/core' {
+  import type { TranslationDescriptor } from '@simplei18n/core';
 
   interface I18nConfig {
     locales: 'en_US' | 'ko';
@@ -30,7 +30,7 @@ declare module 'simplei18n' {
 
 declare global {
   module '*.i18n.yaml' {
-    import type { Locale } from 'simplei18n';
+    import type { Locale } from '@simplei18n/core';
     const locale: Locale;
     export default locale;
   }

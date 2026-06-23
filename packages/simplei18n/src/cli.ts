@@ -6,7 +6,7 @@ import chokidar from 'chokidar';
 import sade from 'sade';
 import { stringify } from 'yaml';
 import packageInfo from '../package.json';
-import { loadConfig, resolveConfigPath } from './config';
+import { loadConfig } from './config';
 import { createExtractCache, extract, invalidateExtractCache } from './extractor';
 import { renderI18n, renderIndex, renderMergedIndex, renderTypes } from './renderer';
 import type { NormalizedConfig, TargetConfig } from './config';

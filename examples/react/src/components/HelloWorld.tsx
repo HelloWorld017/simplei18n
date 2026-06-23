@@ -1,14 +1,14 @@
-import { defineI18n, yaml } from 'simplei18n';
-import { t } from 'simplei18n/react';
+import { defineI18n } from '@simplei18n/core';
+import { t } from '@simplei18n/core/react';
 
 defineI18n(
   yaml => yaml`
-  # scope: helloworld
-  hi: 'Hi'
-  hello: 'Hello updated'
-  such.wow: 'Such updated {wow}'
-  such.wow2: 'Such <b>{wow}</b>'
-`,
+    # scope: helloworld
+    hi: 'Hi'
+    hello: 'Hello updated'
+    such.wow: 'Such updated {wow}'
+    such.wow2: 'Such <b>{wow}</b>'
+  `,
 );
 
 export const HelloWorld = () => (

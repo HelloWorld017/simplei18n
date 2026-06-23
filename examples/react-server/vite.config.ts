@@ -1,4 +1,4 @@
-import simplei18n from 'simplei18n/vite';
+import simplei18n from '@simplei18n/core/vite';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 

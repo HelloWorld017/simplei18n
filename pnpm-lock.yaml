@@ -26,15 +26,15 @@ importers:
 
   examples/react:
     dependencies:
+      '@simplei18n/core':
+        specifier: workspace:*
+        version: link:../../packages/simplei18n
       react:
         specifier: ^19.2.7
         version: 19.2.7
       react-dom:
         specifier: ^19.2.7
         version: 19.2.7(react@19.2.7)
-      simplei18n:
-        specifier: workspace:*
-        version: link:../../packages/simplei18n
     devDependencies:
       '@types/react':
         specifier: ^19.2.3
@@ -51,15 +51,15 @@ importers:
 
   examples/react-server:
     dependencies:
+      '@simplei18n/core':
+        specifier: workspace:*
+        version: link:../../packages/simplei18n
       react:
         specifier: ^19.2.7
         version: 19.2.7
       react-dom:
         specifier: ^19.2.7
         version: 19.2.7(react@19.2.7)
-      simplei18n:
-        specifier: workspace:*
-        version: link:../../packages/simplei18n
     devDependencies:
       '@types/react':
         specifier: ^19.2.17

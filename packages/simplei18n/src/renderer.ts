@@ -146,8 +146,8 @@ export const renderTypes = (
   const treeLines = renderKeyTree(createKeyTree(collectTranslationMetadata(localeSources)), 2);
 
   return [
-    "declare module 'simplei18n' {",
-    "  import type { TranslationDescriptor } from 'simplei18n'",
+    "declare module '@simplei18n/core' {",
+    "  import type { TranslationDescriptor } from '@simplei18n/core'",
     '',
     '  interface I18nConfig {',
     `    locales: ${localeUnion};`,
@@ -161,7 +161,7 @@ export const renderTypes = (
     '',
     'declare global {',
     "  module '*.i18n.yaml' {",
-    "    import type { Locale } from 'simplei18n';",
+    "    import type { Locale } from '@simplei18n/core';",
     '    const locale: Locale;',
     '    export default locale;',
     '  }',
@@ -180,7 +180,7 @@ export const renderIndex = (
   const eagerLocales = locales.filter(locale => isEagerLocale(target, locale));
 
   return [
-    "import { defineLocales } from 'simplei18n';",
+    "import { defineLocales } from '@simplei18n/core';",
     ...eagerLocales.map(
       locale =>
         `import ${localeImportName(target, locale)} from ${stringifyTsString(`./_locales/${locale}.i18n.yaml`)};`,
@@ -221,7 +221,7 @@ export const renderMergedIndex = (
   );
 
   return [
-    "import { defineMergedLocales } from 'simplei18n';",
+    "import { defineMergedLocales } from '@simplei18n/core';",
     ...imports.map(item => `import ${item.name} from ${stringifyTsString(item.path)};`),
     '',
     'export default defineMergedLocales({',
@@ -295,9 +295,7 @@ const createTodoNode = (doc: Document, value: string, wrapLength?: number | null
   return node;
 };
 
-const isTodoNode = (node: unknown): node is Scalar => {
-  return isScalar(node) && node.tag === TODO_TAG;
-};
+const isTodoNode = (node: unknown): node is Scalar => isScalar(node) && node.tag === TODO_TAG;
 
 export const renderI18n = (
   source: Record<string, string>,

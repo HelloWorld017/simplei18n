@@ -1,4 +1,4 @@
-import { defineLocales } from 'simplei18n';
+import { defineLocales } from '@simplei18n/core';
 import defaultEnUS from './_locales/en_US.i18n.yaml';
 import defaultKo from './_locales/ko.i18n.yaml';
 

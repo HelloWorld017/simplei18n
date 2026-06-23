@@ -1,4 +1,4 @@
-import { defineConfig } from 'simplei18n';
+import { defineConfig } from '@simplei18n/core';
 
 export default defineConfig({
   target: {

@@ -6,7 +6,7 @@ const load = (text: string): string => {
 };
 
 const viteSimpleI18n = () => ({
-  name: '@simplei18n/vite-plugin',
+  name: 'vite-simplei18n-plugin',
   transform(src: string, id: string) {
     if (!/.i18n.ya?ml$/.test(id)) {
       return undefined;

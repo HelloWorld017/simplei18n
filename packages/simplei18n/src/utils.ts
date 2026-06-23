@@ -70,10 +70,10 @@ export const createTranslateFunction = <
 }) =>
   ((
     descriptor: UnknownTranslationDescriptor,
-    opts: UnknownTranslateOptions<TTagType> = {},
+    opts?: UnknownTranslateOptions<TTagType>,
   ): TReturnType => {
     const key =
-      typeof opts.$count === 'number'
+      typeof opts?.$count === 'number'
         ? getPluralization(props.translations, descriptor.__key!, opts.$count)
         : descriptor.__key!;
 
@@ -91,11 +91,11 @@ export const createTranslateFunction = <
           }
 
           if (atom[0] === I18nAtomKind.Interpolation) {
-            return opts[atom[1]] as I18nInterpolable;
+            return opts?.[atom[1]] as I18nInterpolable;
           }
 
           if (atom[0] === I18nAtomKind.Tag) {
-            const tag = opts.$tags?.[atom[1]];
+            const tag = opts?.$tags?.[atom[1]];
             return props.createTag(tag!, interpolate(atom[2]), index);
           }
 

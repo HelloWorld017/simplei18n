@@ -1,6 +1,6 @@
+import { createI18nResource, I18nProvider } from '@simplei18n/core/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createI18nResource, I18nProvider } from 'simplei18n/react';
 import { HelloWorld } from './components/HelloWorld';
 import i18n from './i18n';
 

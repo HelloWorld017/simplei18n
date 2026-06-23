@@ -7,8 +7,8 @@
 `simplei18n` is an i18n library that generates type-safe locale files from component-colocated translation declarations.
 
 ```tsx
-import { defineI18n } from 'simplei18n';
-import { t } from 'simplei18n/react';
+import { defineI18n } from '@simplei18n/core';
+import { t } from '@simplei18n/core/react';
 
 defineI18n(
   yaml => yaml`
@@ -46,7 +46,7 @@ interface TranslationMap {
 ## Getting Started
 
 ```sh
-$ pnpm add simplei18n
+$ pnpm add @simplei18n/core
 ```
 
 ### Vite
@@ -56,7 +56,7 @@ Add the Vite plugin to import generated `.i18n.yaml` files.
 ```ts
 // vite.config.ts
 import react from '@vitejs/plugin-react';
-import simplei18n from 'simplei18n/vite';
+import simplei18n from '@simplei18n/core/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -69,7 +69,7 @@ export default defineConfig({
 Create `simplei18n.config.ts` in your project root.
 
 ```ts
-import { defineConfig } from 'simplei18n';
+import { defineConfig } from '@simplei18n/core';
 
 export default defineConfig({
   target: {
@@ -89,7 +89,7 @@ Declare default translations with ``defineI18n(yaml => yaml`...`)`` inside compo
 The declarations are extracted by the CLI and dead-code eliminated.
 
 ```tsx
-import { defineI18n } from 'simplei18n';
+import { defineI18n } from '@simplei18n/core';
 
 defineI18n(
   yaml => yaml`
@@ -143,7 +143,7 @@ In a React client app, pass the generated `i18n/index.ts` config to `createI18nR
 ```tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createI18nResource, I18nProvider } from 'simplei18n/react';
+import { createI18nResource, I18nProvider } from '@simplei18n/core/react';
 import i18n from './i18n';
 import { App } from './App';
 
@@ -161,8 +161,8 @@ createRoot(document.getElementById('root')!).render(
 Use `useI18n` or global `<t._>` inside components.
 
 ```tsx
-import { defineI18n } from 'simplei18n';
-import { useI18n } from 'simplei18n/react';
+import { defineI18n } from '@simplei18n/core';
+import { useI18n } from '@simplei18n/core/react';
 import type { PropsWithChildren } from 'react';
 
 defineI18n(yaml => yaml`
@@ -189,7 +189,7 @@ export const Profile = ({ name }: { name: string }) => {
 };
 
 // Using `t._`
-import { t } from 'simplei18n/react';
+import { t } from '@simplei18n/core/react';
 
 export const Profile = ({ name }: { name: string }) => (
   <p>
@@ -212,10 +212,10 @@ Also you might want to use `mergeTo` so that the server can read locale data syn
 Call `registerI18n` first in the server entry or page, then use `useI18n` or `<t._>`.
 
 ```tsx
-import { defineI18n } from 'simplei18n';
-import { registerI18n, t, useI18n } from 'simplei18n/react';
+import { defineI18n } from '@simplei18n/core';
+import { registerI18n, t, useI18n } from '@simplei18n/core/react';
 import mergedLocales from './_i18n/merged';
-import type { LocaleKey } from 'simplei18n';
+import type { LocaleKey } from '@simplei18n/core';
 
 defineI18n(
   yaml => yaml`
@@ -256,10 +256,10 @@ If Client Components also need translations, add a separate client provider.
 ```tsx
 'use client';
 
-import { createI18nResource, I18nProvider } from 'simplei18n/react';
+import { createI18nResource, I18nProvider } from '@simplei18n/core/react';
 import locales from './_i18n';
 import type { PropsWithChildren } from 'react';
-import type { LocaleKey } from 'simplei18n';
+import type { LocaleKey } from '@simplei18n/core';
 
 const resource = createI18nResource(locales);
 

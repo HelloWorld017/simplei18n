@@ -1,5 +1,5 @@
 {
-  "name": "simplei18n",
+  "name": "@simplei18n/core",
   "version": "0.1.0",
   "description": "Yet another simple, minimal i18n library",
   "license": "MIT",
