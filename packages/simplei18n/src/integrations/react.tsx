@@ -47,13 +47,17 @@ export const I18nProvider = ({ lang, resource, children }: I18nProviderProps) =>
   return <I18nContext.Provider value={nextI18nContext}>{children}</I18nContext.Provider>;
 };
 
-export const useI18n = () => {
+const useI18nContext = (): I18nContextType => {
   const ctx = use(I18nContext);
   if (!ctx) {
     throw new Error('No I18nProvider found!');
   }
 
-  const translationsList = ctx?.resources.map(resource => {
+  return ctx;
+};
+
+const useTranslationsList = (ctx: I18nContextType) =>
+  ctx.resources.map(resource => {
     const result = resource.load(ctx.lang);
     if (isPromise(result)) {
       return use(result);
@@ -62,6 +66,15 @@ export const useI18n = () => {
     return result;
   });
 
+export const I18nLoader = ({ children }: PropsWithChildren) => {
+  const ctx = useI18nContext();
+  useTranslationsList(ctx);
+  return <>{children}</>;
+};
+
+export const useI18n = () => {
+  const ctx = useI18nContext();
+  const translationsList = useTranslationsList(ctx);
   const translations = useMemo(
     () => Object.assign({}, ...translationsList) as Translations,
     [translationsList],

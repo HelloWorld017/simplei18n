@@ -93,5 +93,5 @@ const Translate = (({ children, $count, $tags, ...opts }: GlobalTranslateInterna
 }) as GlobalTranslate;
 
 export const t = wrapWithProxy({ _: Translate });
-export { I18nProvider } from './react';
+export { I18nProvider, I18nLoader } from './react';
 export { createI18nResource };
