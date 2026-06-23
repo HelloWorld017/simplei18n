@@ -94,6 +94,81 @@ const getTemplateLiteralText = (node: Record<string, unknown>, filePath: string)
 const isIdentifier = (node: unknown, name: string): boolean =>
   isObject(node) && node.type === 'Identifier' && node.name === name;
 
+const unwrapParenthesized = (node: unknown): unknown => {
+  let current = node;
+  while (isObject(current) && current.type === 'ParenthesizedExpression') {
+    current = current.expression;
+  }
+
+  return current;
+};
+
+const getYamlTaggedTemplateSource = (node: unknown, filePath: string, tagName: string): string => {
+  const expression = unwrapParenthesized(node);
+  if (
+    !isObject(expression) ||
+    expression.type !== 'TaggedTemplateExpression' ||
+    !isIdentifier(expression.tag, tagName)
+  ) {
+    throw new Error(`defineI18n must return ${tagName}\`...\` in ${filePath}.`);
+  }
+
+  if (!isObject(expression.quasi) || expression.quasi.type !== 'TemplateLiteral') {
+    throw new Error(`defineI18n yaml argument is invalid in ${filePath}.`);
+  }
+
+  return getTemplateLiteralText(expression.quasi, filePath);
+};
+
+const getFunctionReturnExpression = (node: Record<string, unknown>, filePath: string): unknown => {
+  const body = unwrapParenthesized(node.body);
+  if (!isObject(body)) {
+    throw new Error(`defineI18n callback body is invalid in ${filePath}.`);
+  }
+
+  if (body.type !== 'BlockStatement') {
+    return body;
+  }
+
+  const statements = Array.isArray(body.body) ? body.body : [];
+  const returnStatement = statements.find(
+    statement => isObject(statement) && statement.type === 'ReturnStatement',
+  );
+  if (!isObject(returnStatement)) {
+    throw new Error(`defineI18n callback must return yaml\`...\` in ${filePath}.`);
+  }
+
+  return returnStatement.argument;
+};
+
+const getDefineI18nSource = (node: unknown, filePath: string): string => {
+  const arg = unwrapParenthesized(node);
+
+  if (!isObject(arg)) {
+    throw new Error(`defineI18n must be called with yaml => yaml\`...\` in ${filePath}.`);
+  }
+
+  if (arg.type !== 'ArrowFunctionExpression' && arg.type !== 'FunctionExpression') {
+    throw new Error(`defineI18n must be called with yaml => yaml\`...\` in ${filePath}.`);
+  }
+
+  const params = Array.isArray(arg.params) ? arg.params : [];
+  const yamlParam = params[0];
+  if (
+    !isObject(yamlParam) ||
+    yamlParam.type !== 'Identifier' ||
+    typeof yamlParam.name !== 'string'
+  ) {
+    throw new Error(`defineI18n callback must receive a yaml parameter in ${filePath}.`);
+  }
+
+  return getYamlTaggedTemplateSource(
+    getFunctionReturnExpression(arg, filePath),
+    filePath,
+    yamlParam.name,
+  );
+};
+
 const collectDefineI18nSources = (source: string, filePath: string): string[] => {
   const ast = parseSync(filePath, source, {
     sourceType: 'module',
@@ -108,20 +183,7 @@ const collectDefineI18nSources = (source: string, filePath: string): string[] =>
 
     if (node.type === 'CallExpression' && isIdentifier(node.callee, 'defineI18n')) {
       const args = Array.isArray(node.arguments) ? node.arguments : [];
-      const firstArg = args[0];
-      if (
-        !isObject(firstArg) ||
-        firstArg.type !== 'TaggedTemplateExpression' ||
-        !isIdentifier(firstArg.tag, 'yaml')
-      ) {
-        throw new Error(`defineI18n must be called with yaml\`...\` in ${filePath}.`);
-      }
-
-      if (!isObject(firstArg.quasi) || firstArg.quasi.type !== 'TemplateLiteral') {
-        throw new Error(`defineI18n yaml argument is invalid in ${filePath}.`);
-      }
-
-      sources.push(getTemplateLiteralText(firstArg.quasi, filePath));
+      sources.push(getDefineI18nSource(args[0], filePath));
     }
 
     for (const [key, value] of Object.entries(node)) {

@@ -19,7 +19,9 @@ import type {
   LocalesConfig,
 } from './types';
 
-export const defineI18n = (_evaluate: (yaml: (sources: TemplateStringsArray) => RawI18n) => RawI18n): void => {};
+export const defineI18n = (
+  _evaluate: (yaml: (sources: TemplateStringsArray) => RawI18n) => RawI18n,
+): void => {};
 export const defineConfig = <TConfig extends Config>(config: TConfig): TConfig => config;
 export const defineLocales = <TConfig extends LocalesConfigInput>(config: TConfig): TConfig =>
   config;

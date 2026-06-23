@@ -4,7 +4,8 @@ import mergedLocales from './_i18n/merged';
 import { ClientCounter } from './client-counter';
 import { AppI18nProvider } from './i18n-provider';
 
-defineI18n(yaml => yaml`
+defineI18n(
+  yaml => yaml`
   # scope: home
   title: 'simplei18n react-server'
   lead: 'This text is rendered on the <strong>server</strong> with {library}.'
@@ -14,7 +15,8 @@ defineI18n(yaml => yaml`
   clientIncrement: 'Increment on client'
   switchEnglish: 'English'
   switchKorean: 'Korean'
-`);
+`,
+);
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

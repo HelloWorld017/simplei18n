@@ -7,8 +7,8 @@
   "author": "Khinenw",
   "repository": "https://github.com/HelloWorld017/simplei18n",
   "type": "module",
-  "main": "index.js",
   "sideEffects": false,
+  "main": "index.js",
   "scripts": {
     "lint": "oxlint .",
     "format": "oxfmt .",
