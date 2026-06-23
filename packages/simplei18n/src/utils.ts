@@ -19,15 +19,7 @@ import type {
   LocalesConfig,
 } from './types';
 
-export const yaml = (strings: TemplateStringsArray, ...values: never[]): RawI18n => {
-  if (values.length > 0) {
-    throw new Error('simplei18n yaml template literal does not support interpolation.');
-  }
-
-  return strings.raw.join('');
-};
-
-export const defineI18n = (_source: RawI18n): void => {};
+export const defineI18n = (_evaluate: (yaml: (sources: TemplateStringsArray) => RawI18n) => RawI18n): void => {};
 export const defineConfig = <TConfig extends Config>(config: TConfig): TConfig => config;
 export const defineLocales = <TConfig extends LocalesConfigInput>(config: TConfig): TConfig =>
   config;

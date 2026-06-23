@@ -1,10 +1,10 @@
-import { defineI18n, LocaleKey, yaml } from 'simplei18n';
-import { I18nProvider, registerI18n, t, useI18n } from 'simplei18n/react';
+import { defineI18n, LocaleKey } from 'simplei18n';
+import { registerI18n, t, useI18n } from 'simplei18n/react';
 import mergedLocales from './_i18n/merged';
 import { ClientCounter } from './client-counter';
 import { AppI18nProvider } from './i18n-provider';
 
-defineI18n(yaml`
+defineI18n(yaml => yaml`
   # scope: home
   title: 'simplei18n react-server'
   lead: 'This text is rendered on the <strong>server</strong> with {library}.'

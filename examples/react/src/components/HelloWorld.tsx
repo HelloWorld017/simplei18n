@@ -1,7 +1,7 @@
 import { defineI18n, yaml } from 'simplei18n';
 import { t } from 'simplei18n/react';
 
-defineI18n(yaml`
+defineI18n(yaml => yaml`
   # scope: helloworld
   hi: 'Hi'
   hello: 'Hello updated'

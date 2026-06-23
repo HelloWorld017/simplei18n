@@ -1,4 +1,4 @@
-export { defineI18n, defineConfig, defineLocales, defineMergedLocales, yaml } from './utils';
+export { defineI18n, defineConfig, defineLocales, defineMergedLocales } from './utils';
 export type {
   Locale,
   LocaleKey,
