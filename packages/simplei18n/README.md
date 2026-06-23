@@ -109,9 +109,9 @@ Supported syntax:
   Marks values that must be provided when translating the key.
 - **Tag**: `<link>...</link>`  
   Marks rich text that can be mapped to a React component or intrinsic element.
-- **Pluralization Key**: `key.zero` `key.singular` `key.plural`
+- **Pluralization Key**: `key.zero` `key.singular` `key.plural`  
   Hints pluralization, which selects key by the `$count` option.
-- **Scoped Key**: `# scope: common`
+- **Scoped Key**: `# scope: common`  
   Prefixes keys in the block with scope.
 
 ### Code Generation
