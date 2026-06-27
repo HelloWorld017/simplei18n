@@ -71,6 +71,8 @@ const parseYamlSource = (source: string, filePath: string, targetScope?: string)
     });
 };
 
+const normalizeTemplateLiteralRaw = (raw: string): string => raw.replace(/\\(`|\$\{)/g, '$1');
+
 const getTemplateLiteralText = (node: Record<string, unknown>, filePath: string): string => {
   const expressions = Array.isArray(node.expressions) ? node.expressions : [];
   if (expressions.length > 0) {
@@ -86,7 +88,7 @@ const getTemplateLiteralText = (node: Record<string, unknown>, filePath: string)
         throw new Error(`Cannot read yaml template literal in ${filePath}.`);
       }
 
-      return quasi.value.raw;
+      return normalizeTemplateLiteralRaw(quasi.value.raw);
     })
     .join('');
 };
