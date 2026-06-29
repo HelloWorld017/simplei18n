@@ -57,7 +57,9 @@ const collectAtomMetadata = (atoms: I18nAtom[], metadata: TranslationMetadata): 
 
     if (atom[0] === I18nAtomKind.Tag) {
       metadata.tags.add(atom[1]);
-      collectAtomMetadata(atom[2], metadata);
+      if (atom[2]) {
+        collectAtomMetadata(atom[2], metadata);
+      }
     }
   });
 };
@@ -90,7 +92,7 @@ const collectTranslationMetadata = (
 };
 
 const renderStringUnion = (values: Set<string>): string => {
-  const sorted = [...values].sort();
+  const sorted = Array.from(values).sort();
   return sorted.length > 0 ? sorted.map(stringifyTsString).join(' | ') : 'never';
 };
 

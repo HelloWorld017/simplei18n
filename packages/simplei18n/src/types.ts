@@ -17,7 +17,7 @@ export const I18nAtomKind = {
 
 export type I18nAtom = string | I18nAtomInterpolation | I18nAtomTag;
 export type I18nAtomInterpolation = [typeof I18nAtomKind.Interpolation, string];
-export type I18nAtomTag = [typeof I18nAtomKind.Tag, string, I18nAtom[]];
+export type I18nAtomTag = [typeof I18nAtomKind.Tag, string, I18nAtom[] | null];
 export type I18nInterpolable = string | number | bigint;
 
 export type RawI18n = string & { __kind?: 'RawI18n' };

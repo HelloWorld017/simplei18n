@@ -64,7 +64,7 @@ export const createTranslateFunction = <
   TTagType,
   TTagReturnType = TReturnType,
 >(props: {
-  createTag: (tag: TTagType, children: TReturnType, index: number) => TTagReturnType;
+  createTag: (tag: TTagType, children: TReturnType | null, index: number) => TTagReturnType;
   reduce: (args: (null | I18nInterpolable | TTagReturnType)[]) => TReturnType;
   translations: Translations;
 }) =>
@@ -96,7 +96,7 @@ export const createTranslateFunction = <
 
           if (atom[0] === I18nAtomKind.Tag) {
             const tag = opts?.$tags?.[atom[1]];
-            return props.createTag(tag!, interpolate(atom[2]), index);
+            return props.createTag(tag!, atom[2] && interpolate(atom[2]), index);
           }
 
           return null;

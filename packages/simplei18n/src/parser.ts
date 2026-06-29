@@ -64,7 +64,7 @@ const tag: Parjser<I18nAtomTag> = string('<')
   .pipe(
     thenPick(({ name, closes }) => {
       if (closes) {
-        return result([I18nAtomKind.Tag, name, []]);
+        return result<I18nAtomTag>([I18nAtomKind.Tag, name, null]);
       }
 
       const tagClose = string(name).pipe(between('</', '>'));

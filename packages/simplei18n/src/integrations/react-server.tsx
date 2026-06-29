@@ -49,7 +49,7 @@ export const useI18n = () => {
   const { lang, translations } = getI18nStore();
   const translateString = wrapWithProxy(
     createTranslateFunction<string, StringTag>({
-      createTag: (tag, children) => tag(children),
+      createTag: (tag, children) => tag(children ?? ''),
       reduce: args => args.map(value => value ?? '').join(''),
       translations,
     }),
